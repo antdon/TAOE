@@ -64,7 +64,6 @@ class Game():
         if villager.location != targets[self.target_index]:
             villager.move_to_location(targets[self.target_index], delta_time)
             villager.draw(self.screen)
-            self.screen.refresh()
         if villager.location == targets[self.target_index]:
             if not villager.capacity_reached():
                 villager.gather(self.tree, delta_time)
