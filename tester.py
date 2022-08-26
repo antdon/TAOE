@@ -12,10 +12,7 @@ def main(stdscr):
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(TREE_COLOR, curses.COLOR_WHITE, curses.COLOR_GREEN)
     curses.init_pair(BLANK_COLOR, curses.COLOR_WHITE, curses.COLOR_BLACK)
-    # This raises ZeroDivisionError when i == 10.
-    for i in range(0, 10):
-        v = i-10
-        stdscr.addstr(i, 0, f'10 divided by {v} is {10/v}')
+    
     stdscr.addstr(20, 10, "      ", curses.color_pair(PLAYER_COLOR))
     stdscr.addstr(21, 10, "  TH  ", curses.color_pair(PLAYER_COLOR))
     stdscr.addstr(22, 10, "      ", curses.color_pair(PLAYER_COLOR))
