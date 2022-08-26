@@ -6,9 +6,23 @@ from copy import deepcopy
 import time
 from constants import *
 from incidental import *
+import asyncio
 
 SECONDS_PER_UPDATE = 1
 
+
+class Command:
+    def __init__(self, screen):
+        self.command = ""
+        self.cursor_loc = 0
+        self.screen = screen
+
+    def update(self, newkey):
+        self.command += newkey
+        self.draw(newkey)
+
+    def draw(self, newkey):
+        self.screen.addstr(81, self.cursor_loc, newkey)
 
 class Game():
     def __init__(self, map: Map, player: Player, screen, npcs: List[NPC] = None) -> None:
@@ -40,19 +54,20 @@ class Game():
         
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
-        direction = (-1, 1)
+        targets = [(11, 26), (23, 16)]
+        t=0
         while 1:
-            for x in range(10):
-                v_pos = villager.location
-                villager.prev_location = villager.location
-                villager.location = (v_pos[0] + direction[0], 
-                                     v_pos[1] + direction[1])
+            while villager.location != targets[t]:
+                villager.step(targets[t])
                 villager.draw(self.screen)
                 self.screen.refresh()
                 time.sleep(0.5)
 
             time.sleep(1)
-            direction = (-1 * direction[0], -1 * direction[1])
+            t = (t + 1)%2 
+        if (keypress:=self.screen.getkey()):
+            exit()
+            self.commander.update(keypress)
         self.screen.refresh()
 
 
