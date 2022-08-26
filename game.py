@@ -49,7 +49,8 @@ class Game():
         for x in range(6):
             self.incidentals.append(Tree((10, 25+x)))
             self.incidentals.append(Berry((30, 10+x)))
-        self.tree = self.incidentals[2]
+            self.incidentals.append(Vein((3, 2+x)))
+        self.tree = self.incidentals[0]
         self.target_index = 0
         self.commander = commander
 

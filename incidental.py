@@ -25,6 +25,12 @@ class Tree(Incidental):
 class Vein(Incidental):
     def __init__(self, location) -> None:
         super().__init__(location)
+        self.color = curses.color_pair(VEIN_COLOR)
+        self.resource = Resources.GOLD
+        self.rep = choice("||||")
+
+    def draw(self, screen):
+        screen.addstr(*self.location, self.rep, self.color)
 
 class Berry(Incidental):
     def __init__(self, location) -> None:
