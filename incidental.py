@@ -5,10 +5,9 @@ class Incidental():
         self.location = location
 
 class Animal(Incidental):
-    def __init__(self, location, health: int, move_speed: int, food_drop) -> None:
+    def __init__(self, location, health: int, food_drop) -> None:
         super().__init__(location)
         self.health = health
-        self.move_speed = move_speed
         self.food_drop = food_drop
 
 class Tree(Incidental):

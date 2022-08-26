@@ -42,6 +42,18 @@ class Stone_Mine(Mine):
         if self.stone < self.capacity:
             self.stone += self.rate_of_gain
 
+class Build_Site(Structure):
+    def __init__(self, location, time_to_complete: int, building: Structure) -> None:
+        """
+        make sure the building location is the same as the building site 
+        """
+        super().__init__(location)
+        self.time_to_complete = time_to_complete
+        self.building = building
+
+            
+
+
 
 
 
