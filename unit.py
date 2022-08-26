@@ -96,6 +96,15 @@ class Soldier(Unit):
             else:
                 return False
 
+        self.time_on_task += delta_time
+        move_steps = self.time_on_task // self.hit_rate
+        self.time_on_task %= self.hit_rate
+        for s in range(move_steps):
+            killed = hit(difficulty)
+            if killed:
+                self.time_on_task += (move_steps - s - 1) * self.hit_rate
+                break
+        return killed
 
 
         
