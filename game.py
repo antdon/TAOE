@@ -1,4 +1,3 @@
-from math import gamma
 from typing import List
 from map import Map
 from player import NPC, Player

@@ -7,12 +7,15 @@ class Structure():
 
 class Town_Hall(Structure):
     """
-    A Village is where a player should store their resources. Other structures have only a singular resource they can store and only 
-    a limited capacity of that resource. The Village can store a bunch of resources and can store infinite of all of them
+    A Town Hall is where a player should store their resources. 
+    Other structures have only a singular resource they can store and only 
+    a limited capacity of that resource. The Town Hall can store a bunch of 
+    resources and can store infinite of all of them
     """
     def __init__(self, location) -> None:
         super().__init__(location)
         self.villagers: List[Villager] = []
+        self.size = (3, 6)
         self.food: int = 0
         self.gold: int = 0
         self.wood: int = 0

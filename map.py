@@ -1,5 +1,5 @@
 from typing import List 
-
+import itertools
 
 class Tile():
     def __init__(self, coordinate) -> None:
@@ -8,6 +8,7 @@ class Tile():
 
 class Map():
     def __init__(self) -> None:
-        self.grid : List[List[Tile]] = [[Tile((a,b)) for a in range(-15, 15)] for b in range(-15,15)]
+        self.grid : dict[Tile] = {(y,x) : Tile((y,x)) 
+            for x,y in itertools.product(range(-40, 40), repeat=2)}
 
 
