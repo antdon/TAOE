@@ -136,7 +136,14 @@ class Villager(Unit):
                 squares += structure.get_neighbours()
         return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
 
-    def update_target_square(self):
+    def nearest_gatherable(self, resource: Resources, grid : Map):
+        squares = []
+        for tile in grid.grid.values():
+            if tile.content and tile.content.resource == resource:
+                squares.append(tile)
+        return min(squares, key = lambda square: abs(square.coordinate[0] - self.location[0]) + abs(square.coordinate[1] - self.location[1]))
+
+    def update_target_square(self, grid):
         if self.state_action == VillagerStates.GATHER:
             if self.state_target == FoodTypes.BERRIES:
                 # If anything we're carrying isn't food...
@@ -145,7 +152,7 @@ class Villager(Unit):
                     # Find a place to deliver it...
                     self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
                     
-                    
+                self.set_gather_square(self.nearest_gatherable(Resources.FOOD, grid).coordinate)
                 # Find a berry square.
                 
                 pass

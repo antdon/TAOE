@@ -38,7 +38,7 @@ class CommandLine:
         self.screen.addstr(40, 0, self.command)
 
 class Game():
-    def __init__(self, map: Map, player: Player, screen, 
+    def __init__(self, grid: Map, player: Player, screen, 
                  commander: CommandLine, npcs: List[NPC] = None) -> None:
         self.screen = screen
         self.time: int = round(time.time() * 1000)
@@ -51,13 +51,18 @@ class Game():
         else:
             self.npcs = npcs
         self.incidentals = []
-        for x in range(6):
-            self.incidentals.append(Tree((10, 25+x)))
-            self.incidentals.append(Berry((30, 10+x)))
-            self.incidentals.append(Vein((3, 2+x)))
+       #for x in range(6):
+       #    self.incidentals.append(Tree((10, 25+x)))
+       #    self.incidentals.append(Berry((30, 10+x)))
+       #    self.incidentals.append(Vein((3, 2+x)))
+        for tile in grid.grid.values():
+            if tile.content:
+                self.incidentals.append(tile.content)
+
         self.tree = self.incidentals[0]
         self.target_index = 0
         self.commander = commander
+        self.grid = grid
 
     def update(self) -> None:
         """
@@ -84,6 +89,10 @@ class Game():
         
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
+        #villager.set_gather_square((11, 26))
+        villager.set_state(VillagerStates.GATHER, FoodTypes.BERRIES)
+        villager.update_target_square(self.grid)
+        villager.set_deliver_square((21, 16))
         villager.desired_resource = self.tree
 
         villager.update_move(delta_time)
