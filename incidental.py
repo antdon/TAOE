@@ -8,16 +8,17 @@ class Incidental():
         screen.addstr(*self.location, " ", self.color)
 
 class Animal(Incidental):
-    def __init__(self, location, health: int, food_drop) -> None:
+    def __init__(self, location, health: int) -> None:
         super().__init__(location)
         self.health = health
-        self.food_drop = food_drop
+        self.resource = Resources.FOOD
 
 class Tree(Incidental):
     def __init__(self, location, wood_drop:int = 500) -> None:
         super().__init__(location)
         wood_drop = wood_drop
         self.color = curses.color_pair(TREE_COLOR)
+        self.resource = Resources.WOOD
 
 class Vein(Incidental):
     def __init__(self, location) -> None:
