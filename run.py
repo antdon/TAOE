@@ -1,5 +1,5 @@
+import resource
 from player import Player
-from structure import Town_Hall
 from map import Map
 from game import *
 from constants import *

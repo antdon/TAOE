@@ -24,9 +24,16 @@ class Town_Hall(Structure):
     """
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
-        self.villagers: List[Villager] = []
         self.size = (3, 6)
+        # [food, wood, stone, gold]
         self.resources = [0,0,0,0]
+
+    def create_villager(self):
+        if self.resources[int(Resources.FOOD.value)] < 100:
+            print("A villager costs 100 food to make")
+        else:
+            self.resources[int(Resources.FOOD.value)] -= 100
+            self.player.units.append(Villager(self.location, self.player, 50))
 
 class Mine(Structure):
     def __init__(self, location, rate_of_gain: int, capacity: int) -> None:
