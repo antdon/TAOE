@@ -1,7 +1,9 @@
+from importlib.resources import Resource
 from incidental import Animal, Tree
-# from structure import Gold_Mine, Stone_Mine
 from random import choice
 from constants import *
+
+
 
 class Unit():
     def __init__(self, location, health: int) -> None:
@@ -43,46 +45,24 @@ class Villager(Unit):
             # if our villager is at full can't fit any more
             full = True
 
-        if type(target) == Animal:
+        if target.reource == Resources.FOOD:
             self.food += delta_resource if not full else (self.capacity - contents)
-        elif type(target) == Tree:
+        elif target.resource == Resources.WOOD:
             self.wood += delta_resource if not full else (self.capacity - contents)
-        elif type(target) == Gold_Mine:
+        elif target.resource == Resources.GOLD:
             self.gold += delta_resource if not full else (self.capacity - contents)
-        elif type(target) == Stone_Mine:
+        elif target.resource == Resources.STONE:
             self.stone += delta_resource if not full else (self.capacity - contents)
 
     def move_to_location(self, location, delta_time) -> bool:
         """
         returns whether location has been reached
         """
-        direction = None
+        delta_location = int(delta_time * self.move_speed)
+                        
 
-        delta_location = delta_time * self.move_speed
-        if self.location[0] != location[0] and self.location[1] != location[1]:
-            direction = choice("vertical", "horizontal")
-        elif self.location[0] != location[0]:
-            direction = "horizontal"
-        elif self.location[1] != location[1]:
-            direction = "vertical"
-        else:
-            return True
+            
 
-        if direction == "horizontal":
-            if self.location[0] > location[0]:
-                self.location[0] += delta_location
-            else:
-                self.location[0] -= delta_location
-        else:
-            if self.location[1] > location[1]:
-                self.location[1] += delta_location
-            else:
-                self.location[1] -= delta_location
-
-        if self.location == location:
-            return True
-        else:
-            return False
 
 class Soldier(Unit):
     def __init__(self, location, health: int, level: int) -> None:
