@@ -18,6 +18,9 @@ class Map():
             if index % 7 == 0: 
                 tile.content = Tree(tile.coordinate)
 
+
+        
+
             
 
 
