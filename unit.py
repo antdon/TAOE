@@ -121,14 +121,6 @@ class Villager(Unit):
         return (any([x for i,x in enumerate(self.resources) if i != int(resource.value)]) 
             or self.capacity_reached())
 
-    def nearest_gatherable(self, resource: Resources):
-        squares = []
-        game = self.player.game
-        for incidental in game.incidentals:
-            if resource in incidental.resources:
-                squares += game.map.grid[incidental.location].get_neighbours()
-        return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
-
     def nearest_deliverable(self, resource: Resources):
         squares = []
         for structure in self.player.structures:
@@ -139,7 +131,7 @@ class Villager(Unit):
     def nearest_gatherable(self, resource: Resources, grid : Map):
         squares = []
         for tile in grid.grid.values():
-            if tile.content and tile.content.resource == resource:
+            if tile.content and resource in tile.content.resources:
                 squares.append(tile)
         return min(squares, key = lambda square: abs(square.coordinate[0] - self.location[0]) + abs(square.coordinate[1] - self.location[1]))
 
@@ -147,12 +139,11 @@ class Villager(Unit):
         if self.state_action == VillagerStates.GATHER:
             if self.state_target == FoodTypes.BERRIES:
                 # If anything we're carrying isn't food...
-                self.set_gather_square(self.nearest_gatherable(FoodTypes.BERRIES))
+                self.set_gather_square(self.nearest_gatherable(FoodTypes.BERRIES, grid).coordinate)
                 if self.needs_delivery(Resources.FOOD):
                     # Find a place to deliver it...
                     self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
                     
-                self.set_gather_square(self.nearest_gatherable(Resources.FOOD, grid).coordinate)
                 # Find a berry square.
                 
                 pass
