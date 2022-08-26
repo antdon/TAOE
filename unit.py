@@ -1,5 +1,7 @@
 from importlib.resources import Resource
 import time
+from typing import List
+from map import Map
 from incidental import Animal, Tree
 from random import random
 from constants import *
@@ -11,6 +13,14 @@ class Unit():
         self.prev_location = location
         self.location = location
         self.health = health
+
+    def neighbourhood(self, map: Map):
+        surroundings = []
+        for tile in map:
+            if tile.content:
+                surroundings.append((tile.content, tile.coordinate)) 
+        return surroundings
+        
 
     def draw(self, screen):
         screen.addstr(*self.prev_location, " ", curses.color_pair(BLANK_COLOR))

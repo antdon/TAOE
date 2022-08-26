@@ -4,6 +4,7 @@ import itertools
 class Tile():
     def __init__(self, coordinate) -> None:
         self.coordinate = coordinate
+        self.content = None
 
 
 class Map():
