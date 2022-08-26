@@ -1,5 +1,3 @@
-
-
 class Incidental():
     def __init__(self, location) -> None:
         self.location = location
