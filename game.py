@@ -27,8 +27,9 @@ class Command:
 class Game():
     def __init__(self, map: Map, player: Player, screen, npcs: List[NPC] = None) -> None:
         self.screen = screen
-        self.time: int = 0
+        self.time: int = round(time.time() * 1000)
         self.player = Player(Town_Hall((0,0)))
+        self.debug = []
         if npcs == None:
             self.npcs = []
         else:
@@ -36,13 +37,17 @@ class Game():
         self.incidentals = []
         for x in range(6):
             self.incidentals.append(Tree((10, 25+x)))
+        self.tree = self.incidentals[2]
+        self.target_index = 0
 
     def update(self) -> None:
         """
         function called every frame 
         """
-        delta_time = time.time() - self.time
-        self.time += delta_time
+        time_now = round(time.time() * 1000)
+        delta_time = time_now - self.time
+        self.time = time_now
+
 
         structures = deepcopy(self.player.structures)
         for structure in structures:
@@ -55,19 +60,16 @@ class Game():
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
         targets = [(11, 26), (23, 16)]
-        t=0
-        while 1:
-            while villager.location != targets[t]:
-                villager.step(targets[t])
-                villager.draw(self.screen)
-                self.screen.refresh()
-                time.sleep(0.5)
 
-            time.sleep(1)
-            t = (t + 1)%2 
-        if (keypress:=self.screen.getkey()):
-            exit()
-            self.commander.update(keypress)
+        if villager.location != targets[self.target_index]:
+            villager.move_to_location(targets[self.target_index], delta_time)
+            villager.draw(self.screen)
+            self.screen.refresh()
+        if villager.location == targets[self.target_index]:
+            if not villager.capacity_reached():
+                villager.gather(self.tree, delta_time)
+            else:
+                self.target_index = (self.target_index + 1)%2
         self.screen.refresh()
 
 
