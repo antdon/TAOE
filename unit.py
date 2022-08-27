@@ -61,9 +61,12 @@ class Villager(Unit):
 
 
     def set_gather_square(self, square, incidental, resource):
+        if self.gather_square:
+            self.gather_square.users -= {self}
         self.gather_square = square
         self.target_incidental = incidental
         self.desired_resource = resource
+        self.player.game.grid.grid[square].users |= {self}
         self.player.debug = f"{square} {incidental} {resource}"
 
     def set_deliver_square(self, square):
@@ -146,13 +149,13 @@ class Villager(Unit):
         and also the incidental that it will be gathering from.
         """
         game = self.player.game
-        dist = float('inf')
+        dist = (float('inf'), float('inf'))
         nearest = None
         target_incidental = None
         for incidental in game.incidentals:
             if resource in incidental.resources:
                 for square in game.map.grid[incidental.location].get_neighbours():
-                    curr_dist = square.get_dist(self.location)
+                    curr_dist = (len(square.users), square.get_dist(self.location))
                     if curr_dist < dist:
                         nearest = square
                         dist = curr_dist
@@ -160,6 +163,7 @@ class Villager(Unit):
         return nearest.coordinate, target_incidental, target_incidental.resources[0]
 
     def nearest_deliverable(self, resource: Resources):
+        #TODO: A* Algorithm
         squares = []
         for structure in self.player.structures:
             if structure.can_receive(resource):

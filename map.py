@@ -8,6 +8,7 @@ class Tile:
         self.coordinate = coordinate
         self.tilemap = tilemap
         self.content = None
+        self.users = set()
 
     def get_neighbours(self):
         squares = []
@@ -29,7 +30,7 @@ class Map():
     def __init__(self) -> None:
         #TODO: Move the constants to constants.
         self.grid : dict[Tile] = {(y,x) : Tile((y,x), self) 
-            for y,x in itertools.product(range(40), range(80))}
+            for y,x in itertools.product(range(40), range(140))}
         for i in range(20,29):
             for j in range(47,57):
                 self.grid[(i, j)].content = Tree((i,j))
