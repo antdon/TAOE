@@ -1,18 +1,13 @@
-from curses import wrapper
-import curses
-import time
-
-PLAYER_COLOR = 1
-TREE_COLOR = 2
-BLANK_COLOR = 3
+from constants import *
+from game import *
 
 def main(stdscr):
     # Clear screen
     stdscr.clear()
+    
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(TREE_COLOR, curses.COLOR_WHITE, curses.COLOR_GREEN)
     curses.init_pair(BLANK_COLOR, curses.COLOR_WHITE, curses.COLOR_BLACK)
-    
     stdscr.addstr(20, 10, "      ", curses.color_pair(PLAYER_COLOR))
     stdscr.addstr(21, 10, "  TH  ", curses.color_pair(PLAYER_COLOR))
     stdscr.addstr(22, 10, "      ", curses.color_pair(PLAYER_COLOR))
