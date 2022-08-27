@@ -46,7 +46,7 @@ class Game():
         self.time: int = round(time.time() * 1000)
         self.player = player
         self.player.game = self
-        self.map = map
+        self.map = grid
         self.debug = []
         if npcs == None:
             self.npcs = []
