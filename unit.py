@@ -1,6 +1,5 @@
-from asyncio import gather
 from incidental import Animal, Tree
-from structure import Gold_Mine, Stone_Mine
+# from structure import Gold_Mine, Stone_Mine
 from random import choice
 from constants import *
 
@@ -16,7 +15,12 @@ class Unit():
         
 
 class Villager(Unit):
-    def __init__(self, location, health: int, capacity:int, move_speed: int = 1) -> None:
+    def __init__(self, location, health: int = None, capacity:int = None, 
+                move_speed: int = 1) -> None:
+        if capacity == None:
+            self.capacity = VILLAGER_STATS["capacity"]
+        if health == None:
+            self.health = VILLAGER_STATS["health"]
         super().__init__(location, health)
         self.capacity = capacity 
         self.food: int = 0
@@ -53,6 +57,7 @@ class Villager(Unit):
         returns whether location has been reached
         """
         direction = None
+
         delta_location = delta_time * self.move_speed
         if self.location[0] != location[0] and self.location[1] != location[1]:
             direction = choice("vertical", "horizontal")
