@@ -12,7 +12,6 @@ class Unit():
     def draw(self, screen):
         screen.addstr(*self.prev_location, " ", curses.color_pair(BLANK_COLOR))
         screen.addstr(*self.location, "V", curses.color_pair(PLAYER_COLOR))
-        
 
 class Villager(Unit):
     def __init__(self, location, health: int = None, capacity:int = None, 
@@ -52,37 +51,21 @@ class Villager(Unit):
         elif type(target) == Stone_Mine:
             self.stone += delta_resource if not full else (self.capacity - contents)
 
+    def step(self, location):
+        self.prev_location = self.location
+        direction = (location[0] - self.location[0], 
+                     location[1] - self.location[1])
+        direction = (direction[0]//abs(direction[0]) if direction[0] != 0 else 0,
+                     direction[1]//abs(direction[1]) if direction[1] != 0 else 0)
+        self.location = (self.location[0] + direction[0],
+                         self.location[1] + direction[1])
+
     def move_to_location(self, location, delta_time) -> bool:
         """
         returns whether location has been reached
         """
-        direction = None
-
-        delta_location = delta_time * self.move_speed
-        if self.location[0] != location[0] and self.location[1] != location[1]:
-            direction = choice("vertical", "horizontal")
-        elif self.location[0] != location[0]:
-            direction = "horizontal"
-        elif self.location[1] != location[1]:
-            direction = "vertical"
-        else:
-            return True
-
-        if direction == "horizontal":
-            if self.location[0] > location[0]:
-                self.location[0] += delta_location
-            else:
-                self.location[0] -= delta_location
-        else:
-            if self.location[1] > location[1]:
-                self.location[1] += delta_location
-            else:
-                self.location[1] -= delta_location
-
-        if self.location == location:
-            return True
-        else:
-            return False
+        delta_time
+        return self.location == location
 
 class Soldier(Unit):
     def __init__(self, location, health: int, level: int) -> None:

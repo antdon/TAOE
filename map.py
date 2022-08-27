@@ -9,6 +9,6 @@ class Tile():
 class Map():
     def __init__(self) -> None:
         self.grid : dict[Tile] = {(y,x) : Tile((y,x)) 
-            for x,y in itertools.product(range(-40, 40), repeat=2)}
+            for x,y in itertools.product(range(80), repeat=2)}
 
 
