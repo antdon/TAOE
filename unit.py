@@ -39,6 +39,8 @@ class Villager(Unit):
         self.move_speed = move_speed
         self.gather_square = None
         self.deliver_square = None
+        self.set_gather_square((11, 26))
+        self.set_deliver_square((21, 16))
         self.gathering_resource = None
         self.desired_resource = None
 
@@ -52,7 +54,7 @@ class Villager(Unit):
         return sum(self.resources) >= self.capacity
 
     def gather_step(self, target):
-        self.resources[int(target.resource.value)] = self.resources[int(target.resource.value)] + 1
+        self.resources[int(target.resources[0].value)] = self.resources[int(target.resources[0].value)] + 1
 
     def gather(self, target, delta_time):
         """
@@ -100,8 +102,6 @@ class Villager(Unit):
                                 Resources.WOOD):
             self.gather(self.desired_resource, delta_time)
         else:
-            if self.resources[1] == 1:
-                exit(f"{self.needs_delivery(Resources.WOOD)}")
             self.time_on_task += delta_time
             move_steps = self.time_on_task // self.move_speed
             self.time_on_task %= self.move_speed
@@ -121,20 +121,30 @@ class Villager(Unit):
         return (any([x for i,x in enumerate(self.resources) if i != int(resource.value)]) 
             or self.capacity_reached())
 
+    def nearest_gatherable(self, resource: Resources):
+        squares = []
+        game = self.player.game
+        for incidental in game.incidentals:
+            if resource in incidental.resources:
+                squares += game.map.grid[incidental.location].get_neighbours()
+        return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
+
     def nearest_deliverable(self, resource: Resources):
         squares = []
         for structure in self.player.structures:
             if structure.can_receive(resource):
                 squares += structure.get_neighbours()
-        return min(squares, key = lambda square: square.get_dist(self.location))
+        return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
 
     def update_target_square(self):
         if self.state_action == VillagerStates.GATHER:
             if self.state_target == FoodTypes.BERRIES:
                 # If anything we're carrying isn't food...
-                if self.needs_delivery(FoodTypes.BERRIES):
+                self.set_gather_square(self.nearest_gatherable(FoodTypes.BERRIES))
+                if self.needs_delivery(Resources.FOOD):
                     # Find a place to deliver it...
                     self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
+                    
                     
                 # Find a berry square.
                 

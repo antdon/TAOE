@@ -21,7 +21,7 @@ class CommandLine:
         if self.command == "villager/gather berry":
             self.player.units[0].set_state(
                 VillagerStates.GATHER, FoodTypes.BERRIES)
-            
+            self.player.units[0].update_target_square()
 
     def update(self, newkey):
         if newkey == 263:
@@ -43,6 +43,8 @@ class Game():
         self.screen = screen
         self.time: int = round(time.time() * 1000)
         self.player = player
+        self.player.game = self
+        self.map = map
         self.debug = []
         if npcs == None:
             self.npcs = []
@@ -70,11 +72,10 @@ class Game():
             self.commander.update(k)
 
         self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}")
-        self.screen.addstr(1,0, f"Villager Wood: {self.player.units[0].resources[1]}")
+        self.screen.addstr(1,0, f"Villager Wood: {self.player.units[0].resources[1]} ")
 
 
-        structures = deepcopy(self.player.structures)
-        for structure in structures:
+        for structure in self.player.structures:
             structure.update()
             structure.draw(self.screen)
 
@@ -83,8 +84,6 @@ class Game():
         
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
-        villager.set_gather_square((11, 26))
-        villager.set_deliver_square((21, 16))
         villager.desired_resource = self.tree
 
         villager.update_move(delta_time)
