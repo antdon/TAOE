@@ -16,6 +16,9 @@ class Unit():
         self.icon = icon
         self.time_on_task: int = 0
 
+    def set_desired_square(self, location):
+        self.desired_square = location
+
     def step(self, location):
         self.prev_location = self.location
         direction = (location[0] - self.location[0], 
@@ -34,9 +37,9 @@ class Unit():
         
 
     def draw(self, screen):
-        screen.addstr(self.prev_location[0] + 2, self.prev_location[1] + 2, 
+        screen.addstr(self.prev_location[0] + 4, self.prev_location[1] + 2, 
                         " ", curses.color_pair(BLANK_COLOR))
-        screen.addstr(self.location[0] + 2, self.location[1] + 2, 
+        screen.addstr(self.location[0] + 4, self.location[1] + 2, 
                         self.icon, curses.color_pair(PLAYER_COLOR))
 
 class Villager(Unit):
@@ -52,7 +55,7 @@ class Villager(Unit):
         #TODO: Stop the default being wood
         # self.set_deliver_square((21, 16))
         self.deliver_square = None
-        self.state_action = None
+        self.state_action = VillagerStates.IDLE
         self.gathering_resource = None
         self.gather_square = None
         self.desired_resource = None
@@ -62,7 +65,7 @@ class Villager(Unit):
 
     def set_gather_square(self, square, incidental, resource):
         if self.gather_square:
-            self.gather_square.users -= {self}
+            self.player.game.grid.grid[self.gather_square].users -= {self}
         self.gather_square = square
         self.target_incidental = incidental
         self.desired_resource = resource
@@ -98,14 +101,18 @@ class Villager(Unit):
 
     def drop_if_possible(self):
         # If next to Town Hall, drop resources
-        if self.player.game.grid.grid[self.location] in self.player.structures[0].get_neighbours():
-            for i,x in enumerate(self.resources):
-                self.player.structures[0].resources[i] += x
-                self.resources[i] = 0
+        for structure in self.player.structures:
+            if self.player.game.grid.grid[self.location] in structure.get_neighbours():
+                for i,x in enumerate(self.resources):
+                    if structure.can_receive(Resources(i)):
+                        self.player.structures[0].resources[i] += x
+                        self.resources[i] = 0
 
     
 
     def get_target_square(self):
+        if self.state_action == VillagerStates.BUILD:
+            return self.desired_square
         if self.capacity_reached():
             return self.deliver_square
         else:
@@ -116,8 +123,12 @@ class Villager(Unit):
         Updates movement if possible.
         """
         # TODO: Make this general case, not just wood.
-        if self.state_action == None:
+        if self.state_action == VillagerStates.IDLE:
             return
+        if self.state_action == VillagerStates.BUILD:
+            if self.location == self.desired_square:
+                self.state_target(self.location, self.player)
+                self.set_state(VillagerStates.IDLE, None)
         if self.location == self.gather_square and not self.needs_delivery(
                                 self.desired_resource):
             self.gather(self.target_incidental, delta_time)
@@ -170,7 +181,7 @@ class Villager(Unit):
                 squares += structure.get_neighbours()
         if not squares:
             exit(f"{self.player.structures}, {list(structure.location for structure in self.player.structures)} {squares}")
-        return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
+        return min(squares, key = lambda square: square.get_dist(self.gather_square)).coordinate
 
     def update_target_square(self):
         if self.state_action == VillagerStates.GATHER:
@@ -237,10 +248,6 @@ class Soldier(Unit):
                 if self.location == target_location:
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
                     break
-
-    def set_desired_square(self, location):
-        self.desired_square = location
-
 
         
 

@@ -40,4 +40,9 @@ class VillagerStates(Enum):
     BUILD = 2
     
 
+class Buildings(Enum):
+    TOWNHALL = 0
+    MINE = 1
+    MILL = 2
+
 VILLAGER_COST = {Resources.FOOD: 40}

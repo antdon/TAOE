@@ -6,6 +6,7 @@ class Structure():
     def __init__(self, location, player) -> None:
         self.location = location
         self.player = player
+        self.player.structures.append(self)
 
     def get_neighbours(self):
         """ 
@@ -26,11 +27,6 @@ class Structure():
     def update(self) -> None:
         pass
 
-    def draw(self, screen) -> None:
-        screen.addstr(self.location[0]+2, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+3, self.location[1] + 2, "  TH  ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
-
 class Town_Hall(Structure):
     """
     A Town Hall is where a player should store their resources. 
@@ -50,46 +46,56 @@ class Town_Hall(Structure):
     def create_villager(self):
         # TODO: Build a function that compares cost dictionary.
         if self.resources[int(Resources.FOOD.value)] < VILLAGER_COST[Resources.FOOD]:
-            self.player.debug = "A villager costs 100 food to make"
+            self.player.debug = f"A villager costs {VILLAGER_COST[Resources.FOOD]} food to make"
         else:
             self.resources[int(Resources.FOOD.value)] -= VILLAGER_COST[Resources.FOOD]
             self.player.units.append(Villager(self.location, self.player))
 
     def create_soldier(self):
         if self.resources[int(Resources.FOOD.value)] < 100 or self.resources[int(Resources.GOLD.value)] < 100:
-            self.player.debug = "A villager costs 100 food to make"
+            self.player.debug = "A soldier costs 100 food and 100 wood to make"
         else:
             self.resources[int(Resources.FOOD.value)] -= 100
             self.resources[int(Resources.GOLD.value)] -= 100
             self.player.units.append(Soldier(self.location,self.player))
 
+    def draw(self, screen) -> None:
+        screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "  TH  ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+6, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
+
+class Collector(Structure):
+    def __init__(self, location, player) -> None:
+        self.size = (2, 4)
+        super().__init__(location, player)
 
 
-class Mine(Structure):
-    def __init__(self, location, rate_of_gain: int, capacity: int) -> None:
-        super().__init__(location)
-        self.rate_of_gain = rate_of_gain
-        self.capacity = capacity
+class Mine(Collector):
 
-class Gold_Mine(Mine):
-    def __init__(self, location, rate_of_gain: int, capacity: int) -> None:
-        super().__init__(location, rate_of_gain, capacity)
-        self.gold = 0
-        self.resources = [Resources.GOLD]
+    def can_receive(self, resource):
+        return resource in [Resources.GOLD, Resources.STONE]
 
-    def mine(self):
-        if self.gold < self.capacity:
-            self.gold += self.rate_of_gain
+    def draw(self, screen):
+        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+5, self.location[1] + 2, " NE ", curses.color_pair(PLAYER_COLOR))
 
-class Stone_Mine(Mine):
-    def __init__(self, location, rate_of_gain: int, capacity: int) -> None:
-        super().__init__(location, rate_of_gain, capacity)
-        self.stone = 0
-        self.resources = [Resources.STONE]
 
-    def mine(self):
-        if self.stone < self.capacity:
-            self.stone += self.rate_of_gain
+class Mill(Collector):
+    def can_receive(self, resource):
+        return resource in [Resources.FOOD]
+
+    def draw(self, screen):
+        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+5, self.location[1] + 2, " LL ", curses.color_pair(PLAYER_COLOR))
+
+class LumberCamp(Collector):
+    def can_receive(self, resource):
+        return resource in [Resources.WOOD]
+
+    def draw(self, screen):
+        screen.addstr(self.location[0]+4, self.location[1] + 2, " Lum", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "Camp", curses.color_pair(PLAYER_COLOR))
+        
 
 class Build_Site(Structure):
     def __init__(self, location, time_to_complete: int, building: Structure) -> None:

@@ -1,7 +1,7 @@
 from typing import List
 from map import Map
 from player import NPC, Player
-from structure import Build_Site, Town_Hall
+from structure import Build_Site, Town_Hall, Mine, Mill, LumberCamp
 from copy import deepcopy
 import time
 from constants import *
@@ -19,12 +19,9 @@ class CommandLine:
     def state_lookup(self, word):
         return {"berry": Resources.FOOD, "food": Resources.FOOD,
                 "gold": Resources.GOLD, "wood": Resources.WOOD,
-                "stone": Resources.STONE}.get(word, None)
+                "stone": Resources.STONE, "mine": Mine, "mill": Mill, "lumbercamp": LumberCamp}.get(word, None)
 
     def interpret_command(self):
-        # TODO: Make this take the villager as a directory
-        # then interpret gather as an action
-        # and berry/wood/gold as an argument...
         words = self.command.split(" ")
         file = words[0].split("/")
         if "villager" == file[0][:8]:
@@ -40,6 +37,17 @@ class CommandLine:
                     vil.set_state(VillagerStates.GATHER, state)
                     vil.update_target_square()
                     vil.desired_resource = state
+            if file[1] == "build":
+                state = self.state_lookup(words[1])
+                if state != None:
+                    try:
+                        y,x = int(words[2], 16), int(words[3], 16)
+                    except ValueError:
+                        self.player.debug = f"Invalid coordinates! (Remember row first)"
+                        return
+                vil.set_desired_square((y,x))
+                vil.set_state(VillagerStates.BUILD, state)
+                    
         elif "soldier" == file[0][:7]:
             try:
                 ind = int(file[0][7:])
@@ -119,6 +127,7 @@ class Game():
         self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}    " + 
         f"Food: {self.player.structures[0].resources[int(Resources.FOOD.value)]}      " +
         f"Gold: {self.player.structures[0].resources[int(Resources.GOLD.value)]}      ")
+        self.screen.addstr(COMMANDLINE_Y - 1,0, f" " * 100)
         self.screen.addstr(COMMANDLINE_Y - 1,0, f"{self.player.debug} ")
 
 

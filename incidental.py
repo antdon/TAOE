@@ -7,7 +7,7 @@ class Incidental():
         self.owner = None
 
     def draw(self, screen):
-        screen.addstr(self.location[0] + 2, self.location[1] + 2, self.rep, self.color)
+        screen.addstr(self.location[0] + 4, self.location[1] + 2, self.rep, self.color)
 
 class Tree(Incidental):
     def __init__(self, location, wood_drop:int = 500) -> None:

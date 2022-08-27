@@ -4,8 +4,8 @@ from unit import Unit, Villager
 
 class Chieftian():
     def __init__(self) -> None:
+        self.structures: List[Structure] = []
         self.town_hall = Town_Hall((20, 10), self)
-        self.structures: List[Structure] = [self.town_hall]
         self.villagers: List[Villager] = []
         self.units: List[Unit] = [Villager((23, 16), self)]
         self.soldiers: List[Unit] = []
