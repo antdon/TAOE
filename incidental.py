@@ -32,6 +32,16 @@ class Vein(Incidental):
     def draw(self, screen):
         screen.addstr(*self.location, self.rep, self.color)
 
+class Rocks(Incidental):
+    def __init__(self, location) -> None:
+        super().__init__(location)
+        self.color = curses.color_pair(ROCK_COLOR)
+        self.resources = [Resources.STONE]
+        self.rep = choice("----")
+
+    def draw(self, screen):
+        screen.addstr(*self.location, self.rep, self.color)
+
 class Berry(Incidental):
     def __init__(self, location) -> None:
         super().__init__(location)

@@ -24,6 +24,18 @@ class CommandLine:
                 VillagerStates.GATHER, FoodTypes.BERRIES)
             self.player.units[0].update_target_square()
             self.player.units[0].desired_resource = Resources.FOOD
+        elif self.command == "villager/gather wood":
+            self.player.units[0].set_state(
+                VillagerStates.GATHER, Resources.WOOD)
+            self.player.units[0].update_target_square()
+            self.player.units[0].desired_resource = Resources.WOOD
+        elif self.command == "villager/gather gold":
+            self.player.units[0].set_state(
+                VillagerStates.GATHER, Resources.GOLD)
+            self.player.units[0].update_target_square()
+            self.player.units[0].desired_resource = Resources.GOLD
+
+
 
     def update(self, newkey):
         if newkey == 263:
@@ -80,8 +92,13 @@ class Game():
             self.commander.update(k)
 
         self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}    " + 
+<<<<<<< HEAD
         f"Food: {self.player.structures[0].resources[int(Resources.FOOD.value)]}")
         # self.player.debug = f"{[structure.get_neighbours() for structure in self.player.structures]}"
+=======
+        f"Food: {self.player.structures[0].resources[int(Resources.FOOD.value)]}      " +
+        f"Gold: {self.player.structures[0].resources[int(Resources.GOLD.value)]}")
+>>>>>>> 8896edc6a6fcc4588487b3275d6f7ea93adc1fe1
         self.screen.addstr(1,0, f"{self.player.debug} ")
 
 
@@ -95,6 +112,8 @@ class Game():
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
         
+        #self.commander.command = "villager/gather gold"
+        #self.commander.interpret_command()
         villager.update_move(delta_time)
         villager.draw(self.screen)
         

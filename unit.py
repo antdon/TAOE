@@ -164,9 +164,20 @@ class Villager(Unit):
                 if self.needs_delivery(Resources.FOOD):
                     # Find a place to deliver it...
                     self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
+            elif self.state_target == Resources.WOOD:
+                self.set_gather_square(*self.nearest_gatherable(Resources.WOOD))
+
+                if self.needs_delivery(Resources.FOOD):
+                    self.set_deliver_square(self.nearest_deliverable(Resources.WOOD))
+
+            elif self.state_target == Resources.GOLD:
+                self.set_gather_square(*self.nearest_gatherable(Resources.GOLD))
+
+                if self.needs_delivery(Resources.GOLD):
+                    self.set_deliver_square(self.nearest_deliverable(Resources.GOLD))
                     
+        
                     
-                # Find a berry square.
                 
                 pass
         if self.gather_square == None:
