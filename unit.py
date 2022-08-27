@@ -9,10 +9,9 @@ from constants import *
 
 
 class Unit():
-    def __init__(self, location, health: int, player) -> None:
+    def __init__(self, location, player) -> None:
         self.prev_location = location
         self.location = location
-        self.health = health
         self.player = player
 
     def neighbourhood(self, map: Map):
@@ -28,13 +27,11 @@ class Unit():
         screen.addstr(*self.location, "V", curses.color_pair(PLAYER_COLOR))
 
 class Villager(Unit):
-    def __init__(self, location, player, health: int = None, capacity:int = None, 
+    def __init__(self, location, player, capacity:int = None, 
                 move_speed: int = 500) -> None:
         if capacity == None:
             capacity = VILLAGER_STATS["capacity"]
-        if health == None:
-            health = VILLAGER_STATS["health"]
-        super().__init__(location, health, player)
+        super().__init__(location, player)
         self.capacity = capacity 
         self.resources = [0,0,0,0]
         self.time_on_task: int = 0
@@ -149,8 +146,8 @@ class Villager(Unit):
         
 
 class Soldier(Unit):
-    def __init__(self, location, health: int, level: int) -> None:
-        super().__init__(location, health)
+    def __init__(self, location, level: int) -> None:
+        super().__init__(location)
         self.level = level
         self.hit_rate: int = 500
 

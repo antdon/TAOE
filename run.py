@@ -1,5 +1,5 @@
+import resource
 from player import Player
-from structure import Town_Hall
 from map import Map
 from game import *
 from constants import *
@@ -17,6 +17,7 @@ def main(stdscr):
     curses.init_pair(TREE_COLOR, curses.COLOR_WHITE, curses.COLOR_GREEN)
     curses.init_pair(BLANK_COLOR, curses.COLOR_WHITE, curses.COLOR_BLACK)
     curses.init_pair(BERRY_COLOR, curses.COLOR_RED, curses.COLOR_DARKGREEN)
+    curses.init_pair(VEIN_COLOR, curses.COLOR_WHITE, curses.COLOR_YELLOW)
     
     while 1: game.update()
 
