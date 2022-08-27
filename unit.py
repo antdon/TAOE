@@ -40,6 +40,16 @@ class Villager(Unit):
         self.time_on_task: int = 0
         self.gather_rate: int = 300
         self.move_speed = move_speed
+        self.gather_square = None
+        self.deliver_square = None
+        self.gathering_resource = None
+        self.desired_resource = None
+
+    def set_gather_square(self, square):
+        self.gather_square = square
+
+    def set_deliver_square(self, square):
+        self.deliver_square = square
 
     def capacity_reached(self):
         return sum(self.resources) >= self.capacity
@@ -78,19 +88,65 @@ class Villager(Unit):
                          self.location[1] + direction[1])
         self.drop_if_possible()
 
-    def move_to_location(self, location, delta_time) -> bool:
+    def get_target_square(self):
+        if self.capacity_reached():
+            return self.deliver_square
+        else:
+            return self.gather_square
+
+    def update_move(self, delta_time):
         """
-        returns whether location has been reached
+        Updates movement if possible.
         """
-        self.time_on_task += delta_time
-        move_steps = self.time_on_task // self.move_speed
-        self.time_on_task %= self.move_speed
-        for s in range(move_steps):
-            self.step(location)
-            if self.location == location:
-                self.time_on_task += (move_steps - s - 1) * self.move_speed
-                break
-        return self.location == location
+        # TODO: Make this general case, not just wood.
+        if self.location == self.gather_square and not self.needs_delivery(
+                                Resources.WOOD):
+            self.gather(self.desired_resource, delta_time)
+        else:
+            if self.resources[1] == 1:
+                exit(f"{self.needs_delivery(Resources.WOOD)}")
+            self.time_on_task += delta_time
+            move_steps = self.time_on_task // self.move_speed
+            self.time_on_task %= self.move_speed
+            target_location = self.get_target_square()
+            for s in range(move_steps):
+                self.step(target_location)
+                if self.location == target_location:
+                    self.time_on_task += (move_steps - s - 1) * self.move_speed
+                    break
+            
+
+    def set_state(self, action, target):
+        self.state_action = action
+        self.state_target = target
+
+    def needs_delivery(self, resource: Resources):
+        return (any([x for i,x in enumerate(self.resources) if i != int(resource.value)]) 
+            or self.capacity_reached())
+
+    def nearest_deliverable(self, resource: Resources):
+        squares = []
+        for structure in self.player.structures:
+            if structure.can_receive(resource):
+                squares += structure.get_neighbours()
+        return min(squares, key = lambda square: square.get_dist(self.location))
+
+    def update_target_square(self):
+        if self.state_action == VillagerStates.GATHER:
+            if self.state_target == FoodTypes.BERRIES:
+                # If anything we're carrying isn't food...
+                if self.needs_delivery(FoodTypes.BERRIES):
+                    # Find a place to deliver it...
+                    self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
+                    
+                # Find a berry square.
+                
+                pass
+        if self.gather_square == None:
+            pass
+        if self.deliver_square == None:
+            pass
+        
 
 class Soldier(Unit):
     def __init__(self, location, health: int, level: int) -> None:

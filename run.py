@@ -10,7 +10,7 @@ def main(stdscr):
     stdscr.clear()
     map = Map()
     player = Player()
-    commander = CommandLine(stdscr)
+    commander = CommandLine(stdscr, player)
     game = Game(map, player, stdscr, commander)
     curses.init_color(8,0,250,0)
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)

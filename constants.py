@@ -1,6 +1,7 @@
 from curses import wrapper
 import curses
 from enum import Enum
+import itertools
 
 PLAYER_COLOR = 1
 TREE_COLOR = 2
@@ -22,3 +23,14 @@ class Resources(Enum):
     WOOD = 1
     STONE = 2
     GOLD = 3
+
+class FoodTypes(Enum):
+    SHEEP = 0
+    FARM = 1
+    BERRIES = 2
+
+class VillagerStates(Enum):
+    IDLE = 0
+    GATHER = 1
+    BUILD = 2
+    

@@ -3,10 +3,13 @@ import itertools
 
 from incidental import Tree
 
-class Tile():
+class Tile:
     def __init__(self, coordinate) -> None:
         self.coordinate = coordinate
         self.content = None
+
+    def get_dist(self, coord: tuple[int, int]) -> int:
+        return max(abs(self.coordinate[0] - coord[0]), abs(self.coordinate[1] - coord[1]))
 
 
 class Map():

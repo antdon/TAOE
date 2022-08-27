@@ -7,6 +7,21 @@ class Structure():
         self.location = location
         self.player = player
 
+    def get_neighbours(self):
+        """ 
+        Returns a list of squares that can deliver to this structure.
+        """
+        # TODO: Do with itertools and occupy places.
+        squares = []
+        for y in range(self.location[0]-1,self.size[0]+2):
+            squares.append((y, self.location[1]-1))
+            squares.append((y, self.location[1]+self.size[1]))
+        for x in range(self.location[1], self.size[1]):
+            squares.append((self.location[0]-1, x))
+            squares.append((self.location[0]+self.size[0], x))
+        return squares
+        
+
     def update(self) -> None:
         pass
 

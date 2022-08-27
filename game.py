@@ -11,14 +11,17 @@ import asyncio
 
 
 class CommandLine:
-    def __init__(self, screen):
+    def __init__(self, screen, player):
         self.command = ""
         self.cursor_loc = 0
         self.screen = screen
+        self.player = player
 
     def interpret_command(self):
-        if self.command == "villager stop":
-            pass
+        if self.command == "villager/gather berry":
+            self.player.units[0].set_state(
+                VillagerStates.GATHER, FoodTypes.BERRIES)
+            
 
     def update(self, newkey):
         if newkey == 263:
@@ -66,6 +69,7 @@ class Game():
             self.commander.update(k)
 
         self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}")
+        self.screen.addstr(1,0, f"Villager Wood: {self.player.units[0].resources[1]}")
 
 
         structures = deepcopy(self.player.structures)
@@ -78,16 +82,13 @@ class Game():
         
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
-        targets = [(11, 26), (21, 16)]
+        villager.set_gather_square((11, 26))
+        villager.set_deliver_square((21, 16))
+        villager.desired_resource = self.tree
 
-        if villager.location != targets[self.target_index]:
-            villager.move_to_location(targets[self.target_index], delta_time)
-            villager.draw(self.screen)
-        if villager.location == targets[self.target_index]:
-            if villager.location == targets[0] and not villager.capacity_reached():
-                villager.gather(self.tree, delta_time)
-            else:
-                self.target_index = (self.target_index + 1)%2
+        villager.update_move(delta_time)
+        villager.draw(self.screen)
+        
         self.screen.refresh()
 
 
