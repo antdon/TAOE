@@ -1,4 +1,5 @@
 from constants import *
+from random import choice
 
 class Incidental():
     def __init__(self, location) -> None:
@@ -24,3 +25,12 @@ class Vein(Incidental):
     def __init__(self, location) -> None:
         super().__init__(location)
 
+class Berry(Incidental):
+    def __init__(self, location) -> None:
+        super().__init__(location)
+        self.color = curses.color_pair(BERRY_COLOR)
+        self.resource = Resources.FOOD
+        self.rep = choice("⋮⁖∴:")
+
+    def draw(self, screen):
+        screen.addstr(*self.location, self.rep, self.color)

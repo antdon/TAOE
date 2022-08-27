@@ -10,11 +10,13 @@ def main(stdscr):
     stdscr.clear()
     map = Map()
     player = Player()
-    game = Game(map, player, stdscr)
+    commander = CommandLine(stdscr)
+    game = Game(map, player, stdscr, commander)
     
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(TREE_COLOR, curses.COLOR_WHITE, curses.COLOR_GREEN)
     curses.init_pair(BLANK_COLOR, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(BERRY_COLOR, curses.COLOR_RED, curses.COLOR_GREEN)
 
     while 1: game.update()
 
