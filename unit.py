@@ -1,5 +1,7 @@
 from importlib.resources import Resource
 import time
+from typing import List
+from map import Map
 from incidental import Animal, Tree
 from random import random
 from constants import *
@@ -12,6 +14,14 @@ class Unit():
         self.location = location
         self.health = health
         self.player = player
+
+    def neighbourhood(self, map: Map):
+        surroundings = []
+        for tile in map:
+            if tile.content:
+                surroundings.append((tile.content, tile.coordinate)) 
+        return surroundings
+        
 
     def draw(self, screen):
         screen.addstr(*self.prev_location, " ", curses.color_pair(BLANK_COLOR))
@@ -100,6 +110,15 @@ class Soldier(Unit):
             else:
                 return False
 
+        self.time_on_task += delta_time
+        move_steps = self.time_on_task // self.hit_rate
+        self.time_on_task %= self.hit_rate
+        for s in range(move_steps):
+            killed = hit(difficulty)
+            if killed:
+                self.time_on_task += (move_steps - s - 1) * self.hit_rate
+                break
+        return killed
 
 
         
