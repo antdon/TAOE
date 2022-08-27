@@ -52,8 +52,6 @@ class Villager(Unit):
         self.resources = [0,0,0,0]
         self.gather_rate: int = 300
         self.move_speed = move_speed
-        #TODO: Stop the default being wood
-        # self.set_deliver_square((21, 16))
         self.deliver_square = None
         self.state_action = VillagerStates.IDLE
         self.gathering_resource = None
@@ -108,8 +106,6 @@ class Villager(Unit):
                         self.player.structures[0].resources[i] += x
                         self.resources[i] = 0
 
-    
-
     def get_target_square(self):
         if self.state_action == VillagerStates.BUILD:
             return self.desired_square
@@ -122,13 +118,16 @@ class Villager(Unit):
         """
         Updates movement if possible.
         """
-        # TODO: Make this general case, not just wood.
         if self.state_action == VillagerStates.IDLE:
             return
         if self.state_action == VillagerStates.BUILD:
             if self.location == self.desired_square:
-                self.state_target(self.location, self.player)
+                if self.player.can_afford(self.state_target.get_cost()):
+                    self.state_target(self.location, self.player)
+                else:
+                    self.player.debug = "Not enough resources to build building."
                 self.set_state(VillagerStates.IDLE, None)
+                
         if self.location == self.gather_square and not self.needs_delivery(
                                 self.desired_resource):
             self.gather(self.target_incidental, delta_time)
@@ -241,7 +240,6 @@ class Army(Unit):
         return killed
 
 class Soldier(Army):
-    # TODO: Create archers and cavalry.
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "S")
         self.level = level

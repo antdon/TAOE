@@ -51,8 +51,11 @@ class CommandLine:
                         except ValueError:
                             self.player.debug = f"Invalid coordinates! (Remember row first)"
                             return
-                    vil.set_desired_square((y,x))
-                    vil.set_state(VillagerStates.BUILD, state)
+                    if self.player.can_afford(state.get_cost()):
+                        vil.set_desired_square((y,x))
+                        vil.set_state(VillagerStates.BUILD, state)
+                    else:
+                        self.player.debug = "Buildings need 25 stone and 100 wood."
                     return
             for unit_type, unit_container in self.unit_lookup.items():
                 if unit_type == file[0][:len(unit_type)]:
@@ -139,7 +142,8 @@ class Game():
 
         self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}    " + 
         f"Food: {self.player.structures[0].resources[int(Resources.FOOD.value)]}      " +
-        f"Gold: {self.player.structures[0].resources[int(Resources.GOLD.value)]}      ")
+        f"Gold: {self.player.structures[0].resources[int(Resources.GOLD.value)]}      " + 
+        f"Stone: {self.player.structures[0].resources[int(Resources.STONE.value)]}      ")
         self.screen.addstr(COMMANDLINE_Y - 1,0, f" " * 100)
         self.screen.addstr(COMMANDLINE_Y - 1,0, f"{self.player.debug} ")
 

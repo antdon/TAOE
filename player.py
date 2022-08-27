@@ -11,6 +11,17 @@ class Chieftian():
         self.soldiers: List[Unit] = []
         self.archers: List[Unit] = []
         self.cavalry: List[Unit] = []
+
+    def can_afford(self, cost):
+        for resource, amount in cost.items():
+            if self.structures[0].resources[int(resource.value)] < amount:
+                return False
+        else:
+            return True
+
+    def loses_resources(self, cost):
+        for resource, amount in cost.items():
+            self.structures[0].resources[int(resource.value)] -= amount
         
 
 class Player(Chieftian):

@@ -38,7 +38,7 @@ class Town_Hall(Structure):
         super().__init__(location, player)
         self.size = (3, 6)
         # [food, wood, stone, gold]
-        self.resources = [100,100,0,100]
+        self.resources = [100,100,100,100]
 
     def can_receive(self, resource):
         return True
@@ -85,11 +85,14 @@ class House(Structure):
     pass
 
 class Collector(Structure):
-    #TODO: Make these cost wood.
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
-        self.cost = COLLECTOR_COST
+        player.loses_resources(COLLECTOR_COST)
         super().__init__(location, player)
+
+    @staticmethod
+    def get_cost():
+        return COLLECTOR_COST
 
 
 class Mine(Collector):
