@@ -204,6 +204,7 @@ class Villager(Unit):
         
 
 class Soldier(Unit):
+    # TODO: Create archers and cavalry.
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "S")
         self.level = level

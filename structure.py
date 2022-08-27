@@ -65,6 +65,7 @@ class Town_Hall(Structure):
         screen.addstr(self.location[0]+6, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
 
 class Collector(Structure):
+    #TODO: Make these cost wood.
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
         super().__init__(location, player)
