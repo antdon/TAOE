@@ -15,13 +15,14 @@ class Unit():
 
 class Villager(Unit):
     def __init__(self, location, health: int = None, capacity:int = None, 
-                move_speed: int = 1) -> None:
+                move_speed: int = 500) -> None:
         if capacity == None:
             self.capacity = VILLAGER_STATS["capacity"]
         if health == None:
             self.health = VILLAGER_STATS["health"]
         super().__init__(location, health)
         self.capacity = capacity 
+        
         self.food: int = 0
         self.gold: int = 0
         self.wood: int = 0
@@ -30,18 +31,27 @@ class Villager(Unit):
         self.gather_rate: int = 500
         self.move_speed = move_speed
 
-    def gather(self, target, delta_time, gather_rate):
+    def capacity_reached(self):
+        return sum([self.food, self.wood, self.gold, self.stone])
+
+    def gather_step(self, target):
+        target.resource_name
+
+    def gather(self, target, delta_time):
         """
         gather rate - units/time
         """
         self.time_on_task += delta_time
-        delta_resource = delta_time*gather_rate
-        full = False
-        contents = self.food + self.wood + self.gold + self.stone + delta_resource
-        if self.capacity <= contents:
-            # if our villager is at full can't fit any more
-            full = True
+        gather_steps = self.time_on_task // self.gather_rate
+        self.time_on_task %= self.gather_rate
 
+        for s in gather_steps:
+            self.gather_step(target)
+            if self.capacity_reached():
+                self.time_on_task += (gather_steps - s - 1) * self.gather_rate
+                break
+        
+        
         if type(target) == Animal:
             self.food += delta_resource if not full else (self.capacity - contents)
         elif type(target) == Tree:
@@ -64,7 +74,14 @@ class Villager(Unit):
         """
         returns whether location has been reached
         """
-        delta_time
+        self.time_on_task += delta_time
+        move_steps = self.time_on_task // self.move_speed
+        self.time_on_task %= self.move_speed
+        for s in range(move_steps):
+            self.step(location)
+            if self.location == location:
+                self.time_on_task += (move_steps - s - 1) * self.move_speed
+                break
         return self.location == location
 
 class Soldier(Unit):
