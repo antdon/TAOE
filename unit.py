@@ -128,12 +128,23 @@ class Villager(Unit):
             or self.capacity_reached())
 
     def nearest_gatherable(self, resource: Resources):
-        squares = []
+        """
+        Returns a tuple: the square that is closest to the unit,
+        and also the incidental that it will be gathering from.
+        """
         game = self.player.game
+        dist = float('inf')
+        nearest = None
+        target_incidental = None
         for incidental in game.incidentals:
             if resource in incidental.resources:
-                squares += game.map.grid[incidental.location].get_neighbours()
-        return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
+                for square in game.map.grid[incidental.location].get_neighbours():
+                    curr_dist = square.get_dist(self.location)
+                    if curr_dist < dist:
+                        nearest = square
+                        dist = curr_dist
+                        target_incidental = incidental
+        return nearest.coordinate, target_incidental, target_incidental.resources[0]
 
     def nearest_deliverable(self, resource: Resources):
         squares = []
@@ -153,7 +164,8 @@ class Villager(Unit):
         if self.state_action == VillagerStates.GATHER:
             if self.state_target == FoodTypes.BERRIES:
                 # If anything we're carrying isn't food...
-                self.set_gather_square(self.nearest_gatherable(FoodTypes.BERRIES))
+                self.set_gather_square(*self.nearest_gatherable(FoodTypes.BERRIES))
+                
                 if self.needs_delivery(Resources.FOOD):
                     # Find a place to deliver it...
                     self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
