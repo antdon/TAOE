@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from unit import Soldier, Villager
+from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
 
 class Structure():
@@ -52,22 +52,43 @@ class Town_Hall(Structure):
             self.player.units.append(Villager(self.location, self.player))
 
     def create_soldier(self):
-        if self.resources[int(Resources.FOOD.value)] < 100 or self.resources[int(Resources.GOLD.value)] < 100:
-            self.player.debug = "A soldier costs 100 food and 100 wood to make"
+        if self.resources[int(Resources.FOOD.value)] < 60 or self.resources[int(Resources.GOLD.value)] < 40:
+            self.player.debug = "A soldier costs 60 food and 40 wood to make"
+        else:
+            self.resources[int(Resources.FOOD.value)] -= 60
+            self.resources[int(Resources.GOLD.value)] -= 40
+            self.player.units.append(Soldier(self.location,self.player))
+
+    
+    def create_archer(self):
+        if self.resources[int(Resources.FOOD.value)] < 40 or self.resources[int(Resources.WOOD.value)] < 25:
+            self.player.debug = "An archer costs 40 food and 25 wood to make"
+        else:
+            self.resources[int(Resources.FOOD.value)] -= 40
+            self.resources[int(Resources.WOOD.value)] -= 25
+            self.player.units.append(Archer(self.location,self.player))
+    
+    def create_cavalry(self):
+        if self.resources[int(Resources.FOOD.value)] < 100 or self.resources[int(Resources.GOLD.value)] < 60:
+            self.player.debug = "A cavalry costs 100 food and 60 gold to make"
         else:
             self.resources[int(Resources.FOOD.value)] -= 100
-            self.resources[int(Resources.GOLD.value)] -= 100
-            self.player.units.append(Soldier(self.location,self.player))
+            self.resources[int(Resources.GOLD.value)] -= 60
+            self.player.units.append(Cavalry(self.location,self.player))
 
     def draw(self, screen) -> None:
         screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
         screen.addstr(self.location[0]+5, self.location[1] + 2, "  TH  ", curses.color_pair(PLAYER_COLOR))
         screen.addstr(self.location[0]+6, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
 
+class House(Structure):
+    pass
+
 class Collector(Structure):
     #TODO: Make these cost wood.
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
+        self.cost = COLLECTOR_COST
         super().__init__(location, player)
 
 

@@ -15,58 +15,71 @@ class CommandLine:
         self.command = ""
         self.screen = screen
         self.player = player
+        self.unit_lookup = {"archer": self.player.archers, 
+                            "soldier": self.player.soldiers,
+                            "cavalry": self.player.cavalry}
 
     def state_lookup(self, word):
         return {"berry": Resources.FOOD, "food": Resources.FOOD,
                 "gold": Resources.GOLD, "wood": Resources.WOOD,
-                "stone": Resources.STONE, "mine": Mine, "mill": Mill, "lumbercamp": LumberCamp}.get(word, None)
+                "stone": Resources.STONE, "mine": Mine, "mill": Mill, 
+                "lumbercamp": LumberCamp}.get(word, None)
 
     def interpret_command(self):
         words = self.command.split(" ")
         file = words[0].split("/")
-        if "villager" == file[0][:8]:
-            try:
-                ind = int(file[0][8:])
-                vil = self.player.villagers[ind]
-            except:
-                self.player.debug = f"Error! {file[0]} is not a valid villager..."
-                return
-            if file[1] == "gather":
-                state = self.state_lookup(words[1])
-                if state != None:
-                    vil.set_state(VillagerStates.GATHER, state)
-                    vil.update_target_square()
-                    vil.desired_resource = state
-            if file[1] == "build":
-                state = self.state_lookup(words[1])
-                if state != None:
-                    try:
-                        y,x = int(words[2], 16), int(words[3], 16)
-                    except ValueError:
-                        self.player.debug = f"Invalid coordinates! (Remember row first)"
-                        return
-                vil.set_desired_square((y,x))
-                vil.set_state(VillagerStates.BUILD, state)
-                    
-        elif "soldier" == file[0][:7]:
-            try:
-                ind = int(file[0][7:])
-                soldier = self.player.soldiers[ind]
-            except:
-                self.player.debug = f"Error! {file[0]} is not a valid soldier..."
-                return
-            if file[1] == "move":
+        try:
+            if "villager" == file[0][:8]:
                 try:
-                    y,x = int(words[1], 16), int(words[2], 16)
-                except ValueError:
-                    self.player.debug = f"Invalid coordinates! (Remember row first)"
+                    ind = int(file[0][8:])
+                    vil = self.player.villagers[ind]
+                except:
+                    self.player.debug = f"Error! {file[0]} is not a valid villager..."
                     return
-                soldier.set_desired_square((y,x))
-        elif self.command == "townhall/create villager":
-            self.player.structures[0].create_villager()
-        elif self.command == "townhall/create soldier":
-            self.player.structures[0].create_soldier()
-
+                if file[1] == "gather":
+                    state = self.state_lookup(words[1])
+                    if state != None:
+                        vil.set_state(VillagerStates.GATHER, state)
+                        vil.update_target_square()
+                        vil.desired_resource = state
+                        return
+                if file[1] == "build":
+                    state = self.state_lookup(words[1])
+                    if state != None:
+                        try:
+                            y,x = int(words[2], 16), int(words[3], 16)
+                        except ValueError:
+                            self.player.debug = f"Invalid coordinates! (Remember row first)"
+                            return
+                    vil.set_desired_square((y,x))
+                    vil.set_state(VillagerStates.BUILD, state)
+                    return
+            for unit_type, unit_container in self.unit_lookup.items():
+                if unit_type == file[0][:len(unit_type)]:
+                    try:
+                        ind = int(file[0][len(unit_type):])
+                        chosen_unit = unit_container[ind]
+                    except:
+                        self.player.debug = f"Error! {file[0]} is not a valid {unit_type}"
+                        return
+                    if file[1] == "move":
+                        try:
+                            y,x = int(words[1], 16), int(words[2], 16)
+                        except ValueError:
+                            self.player.debug = f"Invalid coordinates! (Remember row first)"
+                            return
+                        chosen_unit.set_desired_square((y,x))
+                        return
+            if self.command == "townhall/create villager":
+                self.player.structures[0].create_villager()
+            elif self.command == "townhall/create soldier":
+                self.player.structures[0].create_soldier()
+            elif self.command == "townhall/create archer":
+                self.player.structures[0].create_archer()
+            elif self.command == "townhall/create cavalry":
+                self.player.structures[0].create_cavalry()
+        except:
+            self.player.debug = "I don't understand."
 
 
     def update(self, newkey):

@@ -202,16 +202,21 @@ class Villager(Unit):
         if self.deliver_square == None:
             pass
         
-
-class Soldier(Unit):
-    # TODO: Create archers and cavalry.
-    def __init__(self, location, player, level: int = 1) -> None:
-        super().__init__(location, player, "S")
-        self.level = level
-        self.hit_rate: int = 500
-        self.desired_square = None
-        self.move_speed = SOLDIER_SPEED
-        self.player.soldiers.append(self)
+class Army(Unit):
+    def update_move(self, delta_time):
+        """
+        Updates movement if possible.
+        """
+        if self.location != self.desired_square and self.desired_square != None:
+            self.time_on_task += delta_time
+            move_steps = self.time_on_task // self.move_speed
+            self.time_on_task %= self.move_speed
+            target_location = self.desired_square
+            for s in range(move_steps):
+                self.step(target_location)
+                if self.location == target_location:
+                    self.time_on_task += (move_steps - s - 1) * self.move_speed
+                    break
 
     def battle(self, target: Unit, difficulty: float, delta_time):
         """
@@ -235,21 +240,30 @@ class Soldier(Unit):
                 break
         return killed
 
-    def update_move(self, delta_time):
-        """
-        Updates movement if possible.
-        """
-        if self.location != self.desired_square and self.desired_square != None:
-            self.time_on_task += delta_time
-            move_steps = self.time_on_task // self.move_speed
-            self.time_on_task %= self.move_speed
-            target_location = self.desired_square
-            for s in range(move_steps):
-                self.step(target_location)
-                if self.location == target_location:
-                    self.time_on_task += (move_steps - s - 1) * self.move_speed
-                    break
+class Soldier(Army):
+    # TODO: Create archers and cavalry.
+    def __init__(self, location, player, level: int = 1) -> None:
+        super().__init__(location, player, "S")
+        self.level = level
+        self.hit_rate: int = 500
+        self.desired_square = None
+        self.move_speed = SOLDIER_SPEED
+        self.player.soldiers.append(self)
 
-        
+class Archer(Army):
+    def __init__(self, location, player, level: int = 1) -> None:
+        super().__init__(location, player, "A")
+        self.level = level
+        self.hit_rate: int = 500
+        self.desired_square = None
+        self.move_speed = ARCHER_SPEED
+        self.player.archers.append(self)
 
-
+class Cavalry(Army):
+    def __init__(self, location, player, level: int =1) -> None:
+        super().__init__(location, player, "C")
+        self.level = level
+        self.hit_rate: int = 500
+        self.desired_square = None
+        self.move_speed = CAVALRY_SPEED
+        self.player.cavalry.append(self)

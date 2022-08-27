@@ -9,6 +9,8 @@ class Chieftian():
         self.villagers: List[Villager] = []
         self.units: List[Unit] = [Villager((23, 16), self)]
         self.soldiers: List[Unit] = []
+        self.archers: List[Unit] = []
+        self.cavalry: List[Unit] = []
         
 
 class Player(Chieftian):

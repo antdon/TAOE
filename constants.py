@@ -21,7 +21,9 @@ VILLAGER_STATS = {
     "capacity": 10
 }
 
-SOLDIER_SPEED = 250
+SOLDIER_SPEED = 300
+ARCHER_SPEED = 750
+CAVALRY_SPEED = 150
 
 class Resources(Enum):
     FOOD = 0
@@ -46,3 +48,4 @@ class Buildings(Enum):
     MILL = 2
 
 VILLAGER_COST = {Resources.FOOD: 40}
+COLLECTOR_COST =  {Resources.WOOD: 80, Resources.STONE: 25}
