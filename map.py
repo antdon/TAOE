@@ -50,7 +50,7 @@ class Map():
 
         for i in range(3, 8):
             for j in range(54, 60):
-                self.grid[(i, j)].content = Rocks((i,j))
+                self.grid[(i, j)].content = Berry((i,j))
 
 
 
