@@ -28,7 +28,7 @@ class Game():
     def __init__(self, map: Map, player: Player, screen, npcs: List[NPC] = None) -> None:
         self.screen = screen
         self.time: int = round(time.time() * 1000)
-        self.player = Player(Town_Hall((0,0)))
+        self.player = player
         self.debug = []
         if npcs == None:
             self.npcs = []
@@ -48,6 +48,8 @@ class Game():
         delta_time = time_now - self.time
         self.time = time_now
 
+        self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}")
+
 
         structures = deepcopy(self.player.structures)
         for structure in structures:
@@ -59,13 +61,13 @@ class Game():
         
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
-        targets = [(11, 26), (23, 16)]
+        targets = [(11, 26), (21, 16)]
 
         if villager.location != targets[self.target_index]:
             villager.move_to_location(targets[self.target_index], delta_time)
             villager.draw(self.screen)
         if villager.location == targets[self.target_index]:
-            if not villager.capacity_reached():
+            if villager.location == targets[0] and not villager.capacity_reached():
                 villager.gather(self.tree, delta_time)
             else:
                 self.target_index = (self.target_index + 1)%2

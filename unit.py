@@ -7,23 +7,24 @@ from constants import *
 
 
 class Unit():
-    def __init__(self, location, health: int) -> None:
+    def __init__(self, location, health: int, player) -> None:
         self.prev_location = location
         self.location = location
         self.health = health
+        self.player = player
 
     def draw(self, screen):
         screen.addstr(*self.prev_location, " ", curses.color_pair(BLANK_COLOR))
         screen.addstr(*self.location, "V", curses.color_pair(PLAYER_COLOR))
 
 class Villager(Unit):
-    def __init__(self, location, health: int = None, capacity:int = None, 
+    def __init__(self, location, player, health: int = None, capacity:int = None, 
                 move_speed: int = 500) -> None:
         if capacity == None:
-            self.capacity = VILLAGER_STATS["capacity"]
+            capacity = VILLAGER_STATS["capacity"]
         if health == None:
-            self.health = VILLAGER_STATS["health"]
-        super().__init__(location, health)
+            health = VILLAGER_STATS["health"]
+        super().__init__(location, health, player)
         self.capacity = capacity 
         self.resources = [0,0,0,0]
         self.time_on_task: int = 0
@@ -31,7 +32,7 @@ class Villager(Unit):
         self.move_speed = move_speed
 
     def capacity_reached(self):
-        return sum(self.resources)
+        return sum(self.resources) >= self.capacity
 
     def gather_step(self, target):
         self.resources[int(target.resource.value)] = self.resources[int(target.resource.value)] + 1
@@ -52,7 +53,10 @@ class Villager(Unit):
 
     def drop_if_possible(self):
         # If next to Town Hall, drop resources
-        pass
+        if self.location == (21, 16):
+            for i,x in enumerate(self.resources):
+                self.player.structures[0].resources[i] += x
+                self.resources[i] = 0
 
     def step(self, location):
         self.prev_location = self.location

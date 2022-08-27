@@ -3,16 +3,17 @@ from unit import Villager
 from constants import *
 
 class Structure():
-    def __init__(self, location) -> None:
+    def __init__(self, location, player) -> None:
         self.location = location
+        self.player = player
 
     def update(self) -> None:
         pass
 
     def draw(self, screen) -> None:
-        screen.addstr(20, 10, "      ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(21, 10, "  TH  ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(22, 10, "      ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(*self.location, "      ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+1, self.location[1], "  TH  ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+2, self.location[1], "      ", curses.color_pair(PLAYER_COLOR))
 
 class Town_Hall(Structure):
     """
@@ -21,14 +22,11 @@ class Town_Hall(Structure):
     a limited capacity of that resource. The Town Hall can store a bunch of 
     resources and can store infinite of all of them
     """
-    def __init__(self, location) -> None:
-        super().__init__(location)
+    def __init__(self, location, player) -> None:
+        super().__init__(location, player)
         self.villagers: List[Villager] = []
         self.size = (3, 6)
-        self.food: int = 0
-        self.gold: int = 0
-        self.wood: int = 0
-        self.stone: int = 0
+        self.resources = [0,0,0,0]
 
 class Mine(Structure):
     def __init__(self, location, rate_of_gain: int, capacity: int) -> None:

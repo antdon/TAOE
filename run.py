@@ -9,7 +9,7 @@ def main(stdscr):
     # Clear screen
     stdscr.clear()
     map = Map()
-    player = Player(Town_Hall)
+    player = Player()
     game = Game(map, player, stdscr)
     
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
