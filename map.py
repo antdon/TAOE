@@ -1,7 +1,7 @@
 from typing import List 
 import itertools
 
-from incidental import Berry, Tree, Vein
+from incidental import Berry, Rocks, Tree, Vein
 
 class Tile:
     def __init__(self, coordinate, tilemap) -> None:
@@ -34,9 +34,13 @@ class Map():
             for j in range(4,13):
                 self.grid[(i, j)].content = Berry((i,j))
 
-        for i in range(35, 40):
-            for j in range(24, 30):
+        for i in range(37, 40):
+            for j in range(20, 30):
                 self.grid[(i, j)].content = Vein((i,j))
+
+        for i in range(30, 33):
+            for j in range(3, 15):
+                self.grid[(i, j)].content = Rocks((i,j))
 
 
 
