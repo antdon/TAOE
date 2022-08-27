@@ -2,17 +2,28 @@ from importlib.resources import Resource
 import time
 from typing import List
 from map import Map
-from incidental import Animal, Tree
+from incidental import Tree
 from random import random
 from constants import *
 
 
 
 class Unit():
-    def __init__(self, location, player) -> None:
+    def __init__(self, location, player, icon) -> None:
         self.prev_location = location
         self.location = location
         self.player = player
+        self.icon = icon
+        self.time_on_task: int = 0
+
+    def step(self, location):
+        self.prev_location = self.location
+        direction = (location[0] - self.location[0], 
+                     location[1] - self.location[1])
+        direction = (direction[0]//abs(direction[0]) if direction[0] != 0 else 0,
+                     direction[1]//abs(direction[1]) if direction[1] != 0 else 0)
+        self.location = (self.location[0] + direction[0],
+                         self.location[1] + direction[1])
 
     def neighbourhood(self, map: Map):
         surroundings = []
@@ -23,18 +34,19 @@ class Unit():
         
 
     def draw(self, screen):
-        screen.addstr(*self.prev_location, " ", curses.color_pair(BLANK_COLOR))
-        screen.addstr(*self.location, "V", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.prev_location[0] + 2, self.prev_location[1] + 2, 
+                        " ", curses.color_pair(BLANK_COLOR))
+        screen.addstr(self.location[0] + 2, self.location[1] + 2, 
+                        self.icon, curses.color_pair(PLAYER_COLOR))
 
 class Villager(Unit):
     def __init__(self, location, player, capacity:int = None, 
                 move_speed: int = 500) -> None:
         if capacity == None:
             capacity = VILLAGER_STATS["capacity"]
-        super().__init__(location, player)
+        super().__init__(location, player, "V")
         self.capacity = capacity 
         self.resources = [0,0,0,0]
-        self.time_on_task: int = 0
         self.gather_rate: int = 300
         self.move_speed = move_speed
         #TODO: Stop the default being wood
@@ -45,6 +57,7 @@ class Villager(Unit):
         self.gather_square = None
         self.desired_resource = None
         self.target_incidental = None
+        self.player.villagers.append(self)
 
 
     def set_gather_square(self, square, incidental, resource):
@@ -61,6 +74,10 @@ class Villager(Unit):
 
     def gather_step(self, target):
         self.resources[int(target.resources[0].value)] = self.resources[int(target.resources[0].value)] + 1
+
+    def step(self, location):
+        super().step(location)
+        self.drop_if_possible()
 
     def gather(self, target, delta_time):
         """
@@ -83,15 +100,7 @@ class Villager(Unit):
                 self.player.structures[0].resources[i] += x
                 self.resources[i] = 0
 
-    def step(self, location):
-        self.prev_location = self.location
-        direction = (location[0] - self.location[0], 
-                     location[1] - self.location[1])
-        direction = (direction[0]//abs(direction[0]) if direction[0] != 0 else 0,
-                     direction[1]//abs(direction[1]) if direction[1] != 0 else 0)
-        self.location = (self.location[0] + direction[0],
-                         self.location[1] + direction[1])
-        self.drop_if_possible()
+    
 
     def get_target_square(self):
         if self.capacity_reached():
@@ -161,9 +170,9 @@ class Villager(Unit):
 
     def update_target_square(self):
         if self.state_action == VillagerStates.GATHER:
-            if self.state_target == FoodTypes.BERRIES:
-                self.set_gather_square(*self.nearest_gatherable(FoodTypes.BERRIES))
-                self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
+            if self.state_target == Resources.FOOD:
+                self.set_gather_square(*self.nearest_gatherable(Resources.FOOD))
+                self.set_deliver_square(self.nearest_deliverable(Resources.FOOD))
                 
             elif self.state_target == Resources.WOOD:
                 self.set_gather_square(*self.nearest_gatherable(Resources.WOOD))
@@ -172,10 +181,6 @@ class Villager(Unit):
             elif self.state_target == Resources.GOLD:
                 self.set_gather_square(*self.nearest_gatherable(Resources.GOLD))
                 self.set_deliver_square(self.nearest_deliverable(Resources.GOLD))
-                    
-        
-                    
-                
                 pass
         if self.gather_square == None:
             pass
@@ -184,10 +189,13 @@ class Villager(Unit):
         
 
 class Soldier(Unit):
-    def __init__(self, location, level: int) -> None:
-        super().__init__(location)
+    def __init__(self, location, player, level: int = 1) -> None:
+        super().__init__(location, player, "S")
         self.level = level
         self.hit_rate: int = 500
+        self.desired_square = None
+        self.move_speed = SOLDIER_SPEED
+        self.player.soldiers.append(self)
 
     def battle(self, target: Unit, difficulty: float, delta_time):
         """
@@ -210,6 +218,24 @@ class Soldier(Unit):
                 self.time_on_task += (move_steps - s - 1) * self.hit_rate
                 break
         return killed
+
+    def update_move(self, delta_time):
+        """
+        Updates movement if possible.
+        """
+        if self.location != self.desired_square and self.desired_square != None:
+            self.time_on_task += delta_time
+            move_steps = self.time_on_task // self.move_speed
+            self.time_on_task %= self.move_speed
+            target_location = self.desired_square
+            for s in range(move_steps):
+                self.step(target_location)
+                if self.location == target_location:
+                    self.time_on_task += (move_steps - s - 1) * self.move_speed
+                    break
+
+    def set_desired_square(self, location):
+        self.desired_square = location
 
 
         

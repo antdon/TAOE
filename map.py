@@ -15,7 +15,10 @@ class Tile:
             if y == x == 0:
                 pass
             else:
-                squares.append(self.tilemap.grid[(self.coordinate[0]+y, self.coordinate[1]+x)])
+                n = self.tilemap.grid.get(
+                    (self.coordinate[0]+y, self.coordinate[1]+x), None)
+                if n:
+                    squares.append(n)
         return squares
 
     def get_dist(self, coord: tuple[int, int]) -> int:
@@ -24,8 +27,9 @@ class Tile:
 
 class Map():
     def __init__(self) -> None:
+        #TODO: Move the constants to constants.
         self.grid : dict[Tile] = {(y,x) : Tile((y,x), self) 
-            for x,y in itertools.product(range(80), repeat=2)}
+            for y,x in itertools.product(range(40), range(80))}
         for i in range(20,29):
             for j in range(47,57):
                 self.grid[(i, j)].content = Tree((i,j))

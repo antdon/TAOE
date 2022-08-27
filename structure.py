@@ -20,16 +20,16 @@ class Structure():
             squares.append((self.location[0]-1, x))
             squares.append((self.location[0]+self.size[0], x))
         # exit('hello')
-        return [self.player.game.grid.grid[s] for s in squares]
+        return [self.player.game.grid.grid.get(s, None) for s in squares if s]
         
 
     def update(self) -> None:
         pass
 
     def draw(self, screen) -> None:
-        screen.addstr(*self.location, "      ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+1, self.location[1], "  TH  ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+2, self.location[1], "      ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+2, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+3, self.location[1] + 2, "  TH  ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
 
 class Town_Hall(Structure):
     """
@@ -42,25 +42,26 @@ class Town_Hall(Structure):
         super().__init__(location, player)
         self.size = (3, 6)
         # [food, wood, stone, gold]
-        self.resources = [0,0,0,0]
+        self.resources = [100,100,0,100]
 
     def can_receive(self, resource):
         return True
 
     def create_villager(self):
-        if self.resources[int(Resources.FOOD.value)] < 100:
-            print("A villager costs 100 food to make")
+        # TODO: Build a function that compares cost dictionary.
+        if self.resources[int(Resources.FOOD.value)] < VILLAGER_COST[Resources.FOOD]:
+            self.player.debug = "A villager costs 100 food to make"
         else:
-            self.resources[int(Resources.FOOD.value)] -= 100
-            self.player.units.append(Villager(self.location, self.player, 50))
+            self.resources[int(Resources.FOOD.value)] -= VILLAGER_COST[Resources.FOOD]
+            self.player.units.append(Villager(self.location, self.player))
 
     def create_soldier(self):
         if self.resources[int(Resources.FOOD.value)] < 100 or self.resources[int(Resources.GOLD.value)] < 100:
-            print("A villager costs 100 food to make")
+            self.player.debug = "A villager costs 100 food to make"
         else:
             self.resources[int(Resources.FOOD.value)] -= 100
             self.resources[int(Resources.GOLD.value)] -= 100
-            self.player.units.append(Soldier(self.location,1))
+            self.player.units.append(Soldier(self.location,self.player))
 
 
 

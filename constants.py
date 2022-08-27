@@ -20,6 +20,8 @@ VILLAGER_STATS = {
     "capacity": 10
 }
 
+SOLDIER_SPEED = 250
+
 class Resources(Enum):
     FOOD = 0
     WOOD = 1
@@ -36,3 +38,5 @@ class VillagerStates(Enum):
     GATHER = 1
     BUILD = 2
     
+
+VILLAGER_COST = {Resources.FOOD: 40}

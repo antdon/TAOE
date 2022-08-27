@@ -7,13 +7,7 @@ class Incidental():
         self.owner = None
 
     def draw(self, screen):
-        screen.addstr(*self.location, " ", self.color)
-
-class Animal(Incidental):
-    def __init__(self, location, health: int) -> None:
-        super().__init__(location)
-        self.health = health
-        self.resources = [Resources.FOOD]
+        screen.addstr(self.location[0] + 2, self.location[1] + 2, self.rep, self.color)
 
 class Tree(Incidental):
     def __init__(self, location, wood_drop:int = 500) -> None:
@@ -21,26 +15,21 @@ class Tree(Incidental):
         wood_drop = wood_drop
         self.color = curses.color_pair(TREE_COLOR)
         self.resources = [Resources.WOOD]
+        self.rep = " "
 
 class Vein(Incidental):
     def __init__(self, location) -> None:
         super().__init__(location)
         self.color = curses.color_pair(VEIN_COLOR)
         self.resources = [Resources.GOLD]
-        self.rep = choice("||||")
-
-    def draw(self, screen):
-        screen.addstr(*self.location, self.rep, self.color)
+        self.rep = "|"
 
 class Rocks(Incidental):
     def __init__(self, location) -> None:
         super().__init__(location)
         self.color = curses.color_pair(ROCK_COLOR)
         self.resources = [Resources.STONE]
-        self.rep = choice("----")
-
-    def draw(self, screen):
-        screen.addstr(*self.location, self.rep, self.color)
+        self.rep = "-"
 
 class Berry(Incidental):
     def __init__(self, location) -> None:
@@ -48,6 +37,3 @@ class Berry(Incidental):
         self.color = curses.color_pair(BERRY_COLOR)
         self.resources = [Resources.FOOD, FoodTypes.BERRIES]
         self.rep = choice("⋮⁖∴:")
-
-    def draw(self, screen):
-        screen.addstr(*self.location, self.rep, self.color)

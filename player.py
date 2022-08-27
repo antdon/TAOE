@@ -6,7 +6,10 @@ class Chieftian():
     def __init__(self) -> None:
         self.town_hall = Town_Hall((20, 10), self)
         self.structures: List[Structure] = [self.town_hall]
+        self.villagers: List[Villager] = []
         self.units: List[Unit] = [Villager((23, 16), self)]
+        self.soldiers: List[Unit] = []
+        
 
 class Player(Chieftian):
     def __init__(self) -> None:

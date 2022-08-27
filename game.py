@@ -17,25 +17,48 @@ class CommandLine:
         self.screen = screen
         self.player = player
 
+    def state_lookup(self, word):
+        return {"berry": Resources.FOOD, "food": Resources.FOOD,
+                "gold": Resources.GOLD, "wood": Resources.WOOD,
+                "stone": Resources.STONE}.get(word, None)
+
     def interpret_command(self):
         # TODO: Make this take the villager as a directory
         # then interpret gather as an action
         # and berry/wood/gold as an argument...
-        if self.command == "villager/gather berry":
-            self.player.units[0].set_state(
-                VillagerStates.GATHER, FoodTypes.BERRIES)
-            self.player.units[0].update_target_square()
-            self.player.units[0].desired_resource = Resources.FOOD
-        elif self.command == "villager/gather wood":
-            self.player.units[0].set_state(
-                VillagerStates.GATHER, Resources.WOOD)
-            self.player.units[0].update_target_square()
-            self.player.units[0].desired_resource = Resources.WOOD
-        elif self.command == "villager/gather gold":
-            self.player.units[0].set_state(
-                VillagerStates.GATHER, Resources.GOLD)
-            self.player.units[0].update_target_square()
-            self.player.units[0].desired_resource = Resources.GOLD
+        words = self.command.split(" ")
+        file = words[0].split("/")
+        if "villager" == file[0][:8]:
+            try:
+                ind = int(file[0][8:])
+                vil = self.player.villagers[ind]
+            except:
+                self.player.debug = f"Error! {file[0]} is not a valid villager..."
+                return
+            if file[1] == "gather":
+                state = self.state_lookup(words[1])
+                if state != None:
+                    vil.set_state(VillagerStates.GATHER, state)
+                    vil.update_target_square()
+                    vil.desired_resource = state
+        elif "soldier" == file[0][:7]:
+            try:
+                ind = int(file[0][7:])
+                soldier = self.player.soldiers[ind]
+            except:
+                self.player.debug = f"Error! {file[0]} is not a valid soldier..."
+                return
+            if file[1] == "move":
+                try:
+                    y,x = int(words[1]), int(words[2])
+                except ValueError:
+                    self.player.debug = f"Invalid coordinates! (Remember row first)"
+                    return
+                soldier.set_desired_square((y,x))
+        elif self.command == "townhall/create villager":
+            self.player.structures[0].create_villager()
+        elif self.command == "townhall/create soldier":
+            self.player.structures[0].create_soldier()
 
 
 
@@ -50,13 +73,19 @@ class CommandLine:
         self.draw()
 
     def draw(self):
-        self.screen.addstr(40, 0, " "*100)
-        self.screen.addstr(40, 0, self.command)
+        self.screen.addstr(45, 0, " "*100)
+        self.screen.addstr(45, 0, self.command)
 
 class Game():
     def __init__(self, grid: Map, player: Player, screen, 
                  commander: CommandLine, npcs: List[NPC] = None) -> None:
         self.screen = screen
+        for y in range(40):
+            self.screen.addstr(y+4, 0, f"{str(y).zfill(2)}")
+        for x in range(80):
+            xval = str(x).zfill(2)
+            self.screen.addstr(2, x+2, f"{xval[0]}")
+            self.screen.addstr(3, x+2, f"{xval[1]}")
         self.time: int = round(time.time() * 1000)
         self.player = player
         self.player.game = self
@@ -95,7 +124,7 @@ class Game():
 
         self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}    " + 
         f"Food: {self.player.structures[0].resources[int(Resources.FOOD.value)]}      " +
-        f"Gold: {self.player.structures[0].resources[int(Resources.GOLD.value)]}")
+        f"Gold: {self.player.structures[0].resources[int(Resources.GOLD.value)]}      ")
         self.screen.addstr(1,0, f"{self.player.debug} ")
 
 
@@ -111,8 +140,9 @@ class Game():
         
         #self.commander.command = "villager/gather gold"
         #self.commander.interpret_command()
-        villager.update_move(delta_time)
-        villager.draw(self.screen)
+        for unit in self.player.units:
+            unit.update_move(delta_time)
+            unit.draw(self.screen)
         
         self.screen.refresh()
 
