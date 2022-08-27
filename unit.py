@@ -16,7 +16,7 @@ class Unit():
         
 
 class Villager(Unit):
-    def __init__(self, location, health: int, capacity:int) -> None:
+    def __init__(self, location, health: int, capacity:int, move_speed: int = 1) -> None:
         super().__init__(location, health)
         self.capacity = capacity 
         self.food: int = 0
@@ -78,15 +78,6 @@ class Villager(Unit):
             return True
         else:
             return False
-            
-            
-
-
-
-        
-
-
-        
 
 class Soldier(Unit):
     def __init__(self, location, health: int, level: int) -> None:
