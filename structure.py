@@ -13,13 +13,14 @@ class Structure():
         """
         # TODO: Do with itertools and occupy places.
         squares = []
-        for y in range(self.location[0]-1,self.size[0]+2):
+        for y in range(self.location[0]-1,self.location[0] + self.size[0]+2):
             squares.append((y, self.location[1]-1))
             squares.append((y, self.location[1]+self.size[1]))
-        for x in range(self.location[1], self.size[1]):
+        for x in range(self.location[1], self.location[1] + self.size[1]):
             squares.append((self.location[0]-1, x))
             squares.append((self.location[0]+self.size[0], x))
-        return squares
+        # exit('hello')
+        return [self.player.game.grid.grid[s] for s in squares]
         
 
     def update(self) -> None:

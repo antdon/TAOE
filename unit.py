@@ -76,7 +76,7 @@ class Villager(Unit):
 
     def drop_if_possible(self):
         # If next to Town Hall, drop resources
-        if self.location == (21, 16):
+        if self.player.game.grid.grid[self.location] in self.player.structures[0].get_neighbours():
             for i,x in enumerate(self.resources):
                 self.player.structures[0].resources[i] += x
                 self.resources[i] = 0
@@ -151,6 +151,8 @@ class Villager(Unit):
         for structure in self.player.structures:
             if structure.can_receive(resource):
                 squares += structure.get_neighbours()
+        if not squares:
+            exit(f"{self.player.structures}, {list(structure.location for structure in self.player.structures)} {squares}")
         return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
 
     def update_target_square(self):
