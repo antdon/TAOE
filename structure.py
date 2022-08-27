@@ -73,7 +73,7 @@ class Gold_Mine(Mine):
     def __init__(self, location, rate_of_gain: int, capacity: int) -> None:
         super().__init__(location, rate_of_gain, capacity)
         self.gold = 0
-        self.resource = Resources.GOLD
+        self.resources = [Resources.GOLD]
 
     def mine(self):
         if self.gold < self.capacity:
@@ -83,7 +83,7 @@ class Stone_Mine(Mine):
     def __init__(self, location, rate_of_gain: int, capacity: int) -> None:
         super().__init__(location, rate_of_gain, capacity)
         self.stone = 0
-        self.resource = Resources.STONE
+        self.resources = [Resources.STONE]
 
     def mine(self):
         if self.stone < self.capacity:
