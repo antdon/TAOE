@@ -24,20 +24,16 @@ class Villager(Unit):
             self.health = VILLAGER_STATS["health"]
         super().__init__(location, health)
         self.capacity = capacity 
-        
-        self.food: int = 0
-        self.gold: int = 0
-        self.wood: int = 0
-        self.stone: int = 0
+        self.resources = [0,0,0,0]
         self.time_on_task: int = 0
-        self.gather_rate: int = 500
+        self.gather_rate: int = 300
         self.move_speed = move_speed
 
     def capacity_reached(self):
-        return sum([self.food, self.wood, self.gold, self.stone])
+        return sum(self.resources)
 
     def gather_step(self, target):
-        target.resource_name
+        self.resources[int(target.resource.value)] = self.resources[int(target.resource.value)] + 1
 
     def gather(self, target, delta_time):
         """
@@ -47,11 +43,15 @@ class Villager(Unit):
         gather_steps = self.time_on_task // self.gather_rate
         self.time_on_task %= self.gather_rate
 
-        for s in gather_steps:
+        for s in range(gather_steps):
             self.gather_step(target)
             if self.capacity_reached():
                 self.time_on_task += (gather_steps - s - 1) * self.gather_rate
                 break
+
+    def drop_if_possible(self):
+        # If next to Town Hall, drop resources
+        pass
 
     def step(self, location):
         self.prev_location = self.location
@@ -61,6 +61,7 @@ class Villager(Unit):
                      direction[1]//abs(direction[1]) if direction[1] != 0 else 0)
         self.location = (self.location[0] + direction[0],
                          self.location[1] + direction[1])
+        self.drop_if_possible()
 
     def move_to_location(self, location, delta_time) -> bool:
         """
