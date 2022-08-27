@@ -124,9 +124,12 @@ class Villager(Unit):
             if self.location == self.desired_square:
                 if self.player.can_afford(self.state_target.get_cost()):
                     self.state_target(self.location, self.player)
+                    for villager in self.player.villagers:
+                        villager.update_target_square()
+                    self.set_state(VillagerStates.GATHER, self.state_target.get_next_resource())
                 else:
                     self.player.debug = "Not enough resources to build building."
-                self.set_state(VillagerStates.IDLE, None)
+                    self.set_state(VillagerStates.IDLE, None)
                 
         if self.location == self.gather_square and not self.needs_delivery(
                                 self.desired_resource):
@@ -146,6 +149,7 @@ class Villager(Unit):
     def set_state(self, action, target):
         self.state_action = action
         self.state_target = target
+        self.update_target_square()
 
     def needs_delivery(self, resource: Resources):
         if resource == None:

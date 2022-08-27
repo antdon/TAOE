@@ -96,6 +96,9 @@ class Collector(Structure):
 
 
 class Mine(Collector):
+    @staticmethod
+    def get_next_resource():
+        return Resources.GOLD
 
     def can_receive(self, resource):
         return resource in [Resources.GOLD, Resources.STONE]
@@ -106,6 +109,10 @@ class Mine(Collector):
 
 
 class Mill(Collector):
+    @staticmethod
+    def get_next_resource():
+        return Resources.FOOD
+
     def can_receive(self, resource):
         return resource in [Resources.FOOD]
 
@@ -114,6 +121,10 @@ class Mill(Collector):
         screen.addstr(self.location[0]+5, self.location[1] + 2, " LL ", curses.color_pair(PLAYER_COLOR))
 
 class LumberCamp(Collector):
+    @staticmethod
+    def get_next_resource():
+        return Resources.WOOD
+
     def can_receive(self, resource):
         return resource in [Resources.WOOD]
 
