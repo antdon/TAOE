@@ -4,6 +4,7 @@ from random import choice
 class Incidental():
     def __init__(self, location) -> None:
         self.location = location
+        self.owner = None
 
     def draw(self, screen):
         screen.addstr(*self.location, " ", self.color)
