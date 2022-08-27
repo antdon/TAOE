@@ -8,7 +8,6 @@ from constants import *
 from incidental import *
 import asyncio
 
-SECONDS_PER_UPDATE = 1
 
 
 class CommandLine:
@@ -24,7 +23,7 @@ class CommandLine:
     def update(self, newkey):
         if newkey == 263:
             self.command = self.command[:-1]
-        if newkey == 10:
+        elif newkey == 10:
             self.interpret_command()
             self.command = ""
         else:
