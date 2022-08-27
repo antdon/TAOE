@@ -1,14 +1,22 @@
+from constants import *
+
 class Unit():
     def __init__(self, location, health: int) -> None:
+        self.prev_location = location
         self.location = location
         self.health = health
 
-    def draw(self, stdscr):
+    def draw(self, screen):
+        screen.addstr(*self.prev_location, " ", curses.color_pair(BLANK_COLOR))
+        screen.addstr(*self.location, "V", curses.color_pair(PLAYER_COLOR))
         
-        pass
 
 class Villager(Unit):
-    def __init__(self, location, health: int, capacity:int) -> None:
+    def __init__(self, location, health: int = None, capacity:int = None) -> None:
+        if capacity == None:
+            capacity = VILLAGER_STATS["capacity"]
+        if health == None:
+            health = VILLAGER_STATS["health"]
         super().__init__(location, health)
         self.capacity = capacity 
         self.food: int = 0

@@ -1,9 +1,18 @@
 from typing import List, Tuple
 from unit import Villager
+from constants import *
 
 class Structure():
     def __init__(self, location) -> None:
         self.location = location
+
+    def update(self) -> None:
+        pass
+
+    def draw(self, screen) -> None:
+        screen.addstr(20, 10, "      ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(21, 10, "  TH  ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(22, 10, "      ", curses.color_pair(PLAYER_COLOR))
 
 class Town_Hall(Structure):
     """
