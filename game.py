@@ -30,7 +30,6 @@ class Game():
         self.time: int = round(time.time() * 1000)
         self.player = Player(Town_Hall((0,0)))
         self.debug = []
-        self.tree = Tree()
         if npcs == None:
             self.npcs = []
         else:
@@ -38,6 +37,7 @@ class Game():
         self.incidentals = []
         for x in range(6):
             self.incidentals.append(Tree((10, 25+x)))
+        self.tree = self.incidentals[2]
         self.target_index = 0
 
     def update(self) -> None:
@@ -67,7 +67,7 @@ class Game():
             self.screen.refresh()
         if villager.location == targets[self.target_index]:
             if not villager.capacity_reached():
-                villager.gather(self.tree)
+                villager.gather(self.tree, delta_time)
             else:
                 self.target_index = (self.target_index + 1)%2
         self.screen.refresh()

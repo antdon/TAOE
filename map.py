@@ -11,4 +11,8 @@ class Map():
         self.grid : dict[Tile] = {(y,x) : Tile((y,x)) 
             for x,y in itertools.product(range(80), repeat=2)}
 
+        
+
+    
+
 

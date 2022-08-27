@@ -1,7 +1,9 @@
+from importlib.resources import Resource
 from incidental import Animal, Tree
-# from structure import Gold_Mine, Stone_Mine
 from random import choice
 from constants import *
+
+
 
 class Unit():
     def __init__(self, location, health: int) -> None:
@@ -50,16 +52,6 @@ class Villager(Unit):
             if self.capacity_reached():
                 self.time_on_task += (gather_steps - s - 1) * self.gather_rate
                 break
-        
-        
-        if type(target) == Animal:
-            self.food += delta_resource if not full else (self.capacity - contents)
-        elif type(target) == Tree:
-            self.wood += delta_resource if not full else (self.capacity - contents)
-        elif type(target) == Gold_Mine:
-            self.gold += delta_resource if not full else (self.capacity - contents)
-        elif type(target) == Stone_Mine:
-            self.stone += delta_resource if not full else (self.capacity - contents)
 
     def step(self, location):
         self.prev_location = self.location
