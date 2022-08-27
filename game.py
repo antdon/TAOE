@@ -19,9 +19,11 @@ class CommandLine:
 
     def interpret_command(self):
         if self.command == "villager/gather berry":
+            self.player.debug = "Hello"
             self.player.units[0].set_state(
                 VillagerStates.GATHER, FoodTypes.BERRIES)
             self.player.units[0].update_target_square()
+            self.player.units[0].desired_resource = Resources.FOOD
 
     def update(self, newkey):
         if newkey == 263:
@@ -56,6 +58,7 @@ class Game():
             self.incidentals.append(Berry((30, 10+x)))
             self.incidentals.append(Vein((3, 2+x)))
         self.tree = self.incidentals[0]
+        self.player.units[0].set_gather_square((11,26), self.tree, Resources.WOOD)
         self.target_index = 0
         self.commander = commander
 
@@ -71,8 +74,9 @@ class Game():
         if (k:=self.screen.getch()) != -1:
             self.commander.update(k)
 
-        self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}")
-        self.screen.addstr(1,0, f"Villager Wood: {self.player.units[0].resources[1]} ")
+        self.screen.addstr(0,0, f"Wood: {self.player.structures[0].resources[int(Resources.WOOD.value)]}    " + 
+        f"Food: {self.player.structures[0].resources[int(Resources.FOOD.value)]}")
+        self.screen.addstr(1,0, f"{self.player.debug} ")
 
 
         for structure in self.player.structures:
@@ -84,8 +88,7 @@ class Game():
         
         # MOVE THIS OUT OF THE MAIN FUNCTION
         villager = self.player.units[0]
-        villager.desired_resource = self.tree
-
+        
         villager.update_move(delta_time)
         villager.draw(self.screen)
         

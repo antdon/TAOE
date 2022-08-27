@@ -37,15 +37,19 @@ class Villager(Unit):
         self.time_on_task: int = 0
         self.gather_rate: int = 300
         self.move_speed = move_speed
-        self.gather_square = None
-        self.deliver_square = None
-        self.set_gather_square((11, 26))
+        #TODO: Stop the default being wood
         self.set_deliver_square((21, 16))
         self.gathering_resource = None
         self.desired_resource = None
+        self.target_incidental = None
+        # self.set_gather_square((11, 26), Resources.WOOD)
 
-    def set_gather_square(self, square):
+
+    def set_gather_square(self, square, incidental, resource):
         self.gather_square = square
+        self.target_incidental = incidental
+        self.desired_resource = resource
+        self.player.debug = f"{square} {incidental} {resource}"
 
     def set_deliver_square(self, square):
         self.deliver_square = square
@@ -99,8 +103,8 @@ class Villager(Unit):
         """
         # TODO: Make this general case, not just wood.
         if self.location == self.gather_square and not self.needs_delivery(
-                                Resources.WOOD):
-            self.gather(self.desired_resource, delta_time)
+                                self.desired_resource):
+            self.gather(self.target_incidental, delta_time)
         else:
             self.time_on_task += delta_time
             move_steps = self.time_on_task // self.move_speed
@@ -118,16 +122,29 @@ class Villager(Unit):
         self.state_target = target
 
     def needs_delivery(self, resource: Resources):
+        if resource == None:
+            exit(f"{resource}")
         return (any([x for i,x in enumerate(self.resources) if i != int(resource.value)]) 
             or self.capacity_reached())
 
     def nearest_gatherable(self, resource: Resources):
-        squares = []
+        """
+        Returns a tuple: the square that is closest to the unit,
+        and also the incidental that it will be gathering from.
+        """
         game = self.player.game
+        dist = float('inf')
+        nearest = None
+        target_incidental = None
         for incidental in game.incidentals:
             if resource in incidental.resources:
-                squares += game.map.grid[incidental.location].get_neighbours()
-        return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
+                for square in game.map.grid[incidental.location].get_neighbours():
+                    curr_dist = square.get_dist(self.location)
+                    if curr_dist < dist:
+                        nearest = square
+                        dist = curr_dist
+                        target_incidental = incidental
+        return nearest.coordinate, target_incidental, target_incidental.resources[0]
 
     def nearest_deliverable(self, resource: Resources):
         squares = []
@@ -140,7 +157,8 @@ class Villager(Unit):
         if self.state_action == VillagerStates.GATHER:
             if self.state_target == FoodTypes.BERRIES:
                 # If anything we're carrying isn't food...
-                self.set_gather_square(self.nearest_gatherable(FoodTypes.BERRIES))
+                self.set_gather_square(*self.nearest_gatherable(FoodTypes.BERRIES))
+                
                 if self.needs_delivery(Resources.FOOD):
                     # Find a place to deliver it...
                     self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))

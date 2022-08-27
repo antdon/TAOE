@@ -43,6 +43,9 @@ class Town_Hall(Structure):
         # [food, wood, stone, gold]
         self.resources = [0,0,0,0]
 
+    def can_receive(self, resource):
+        return True
+
     def create_villager(self):
         if self.resources[int(Resources.FOOD.value)] < 100:
             print("A villager costs 100 food to make")

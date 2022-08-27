@@ -11,6 +11,7 @@ class Chieftian():
 class Player(Chieftian):
     def __init__(self) -> None:
         super().__init__()
+        self.debug = ""
 
 class NPC(Chieftian):
     def __init__(self) -> None:
