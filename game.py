@@ -13,6 +13,7 @@ class Game():
         self.time: int = 0
         self.player = Player(Town_Hall((0,0)))
         self.npcs = npcs
+        self.running = True
         
 
     def update(self) -> None:
@@ -27,6 +28,11 @@ class Game():
             if build_site.time_to_complete <= 0:
                 structures.remove(build_site)
                 structures.append(build_site.building)
+
+        self.player.structures = structures
+
+
+
 
     
 
