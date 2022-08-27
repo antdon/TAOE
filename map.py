@@ -30,7 +30,7 @@ class Map():
             for j in range(47,57):
                 self.grid[(i, j)].content = Tree((i,j))
 
-        for i in range(0, 11):
+        for i in range(7, 9):
             for j in range(4,13):
                 self.grid[(i, j)].content = Berry((i,j))
 
