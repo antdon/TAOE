@@ -18,8 +18,10 @@ class CommandLine:
         self.player = player
 
     def interpret_command(self):
+        # TODO: Make this take the villager as a directory
+        # then interpret gather as an action
+        # and berry/wood/gold as an argument...
         if self.command == "villager/gather berry":
-            self.player.debug = "Hello"
             self.player.units[0].set_state(
                 VillagerStates.GATHER, FoodTypes.BERRIES)
             self.player.units[0].update_target_square()
@@ -74,7 +76,7 @@ class Game():
                 self.incidentals.append(tile.content)
 
         self.tree = self.incidentals[0]
-        self.player.units[0].set_gather_square((11,26), self.tree, Resources.WOOD)
+        # self.player.units[0].set_gather_square((11,26), self.tree, Resources.WOOD)
         self.target_index = 0
         self.commander = commander
         self.grid = grid

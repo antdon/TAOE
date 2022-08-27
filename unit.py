@@ -38,11 +38,13 @@ class Villager(Unit):
         self.gather_rate: int = 300
         self.move_speed = move_speed
         #TODO: Stop the default being wood
-        self.set_deliver_square((21, 16))
+        # self.set_deliver_square((21, 16))
+        self.deliver_square = None
+        self.state_action = None
         self.gathering_resource = None
+        self.gather_square = None
         self.desired_resource = None
         self.target_incidental = None
-        # self.set_gather_square((11, 26), Resources.WOOD)
 
 
     def set_gather_square(self, square, incidental, resource):
@@ -102,6 +104,8 @@ class Villager(Unit):
         Updates movement if possible.
         """
         # TODO: Make this general case, not just wood.
+        if self.state_action == None:
+            return
         if self.location == self.gather_square and not self.needs_delivery(
                                 self.desired_resource):
             self.gather(self.target_incidental, delta_time)
@@ -158,23 +162,16 @@ class Villager(Unit):
     def update_target_square(self):
         if self.state_action == VillagerStates.GATHER:
             if self.state_target == FoodTypes.BERRIES:
-                # If anything we're carrying isn't food...
                 self.set_gather_square(*self.nearest_gatherable(FoodTypes.BERRIES))
+                self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
                 
-                if self.needs_delivery(Resources.FOOD):
-                    # Find a place to deliver it...
-                    self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
             elif self.state_target == Resources.WOOD:
                 self.set_gather_square(*self.nearest_gatherable(Resources.WOOD))
-
-                if self.needs_delivery(Resources.FOOD):
-                    self.set_deliver_square(self.nearest_deliverable(Resources.WOOD))
+                self.set_deliver_square(self.nearest_deliverable(Resources.WOOD))
 
             elif self.state_target == Resources.GOLD:
                 self.set_gather_square(*self.nearest_gatherable(Resources.GOLD))
-
-                if self.needs_delivery(Resources.GOLD):
-                    self.set_deliver_square(self.nearest_deliverable(Resources.GOLD))
+                self.set_deliver_square(self.nearest_deliverable(Resources.GOLD))
                     
         
                     
