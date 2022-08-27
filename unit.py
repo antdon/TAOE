@@ -151,7 +151,8 @@ class Villager(Unit):
         for structure in self.player.structures:
             if structure.can_receive(resource):
                 squares += structure.get_neighbours()
-        return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
+        #return min(squares, key = lambda square: square.get_dist(self.location)).coordinate
+        return self.player.structures[0].location
 
     def update_target_square(self):
         if self.state_action == VillagerStates.GATHER:
@@ -162,9 +163,14 @@ class Villager(Unit):
                 if self.needs_delivery(Resources.FOOD):
                     # Find a place to deliver it...
                     self.set_deliver_square(self.nearest_deliverable(FoodTypes.BERRIES))
+            if self.state_target == Resources.WOOD:
+                self.set_gather_square(*self.nearest_gatherable(Resources.WOOD))
+
+                if self.needs_delivery(Resources.FOOD):
+                    self.set_deliver_square(self.nearest_deliverable(Resources.WOOD))
                     
+        
                     
-                # Find a berry square.
                 
                 pass
         if self.gather_square == None:
