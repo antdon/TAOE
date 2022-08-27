@@ -1,6 +1,7 @@
 from importlib.resources import Resource
+import time
 from incidental import Animal, Tree
-from random import choice
+from random import random
 from constants import *
 
 
@@ -81,4 +82,22 @@ class Soldier(Unit):
     def __init__(self, location, health: int, level: int) -> None:
         super().__init__(location, health)
         self.level = level
+        self.hit_rate: int = 500
+
+    def battle(self, target: Unit, difficulty: float, delta_time):
+        """
+        difficulty should be a float from 0 to 1 with the larger the number the 
+        less likely the target is to die on any particular hit
+        return True they died
+        """
+        def hit(difficulty):
+            if random() > difficulty:
+                return True
+            else:
+                return False
+
+
+
+        
+
 
