@@ -121,6 +121,7 @@ class Game():
             xval = hex(x)[2:].zfill(2)
             self.screen.addstr(2, x+2, f"{xval[0]}")
             self.screen.addstr(3, x+2, f"{xval[1]}")
+
         
         self.all_units = []
         self.time: int = round(time.time() * 1000)
@@ -140,6 +141,7 @@ class Game():
         self.enemy = NPC()
         self.enemy.game = self
         self.enemy.units.append(Soldier((0x10, 0x70), self.enemy))
+        self.enemy.units.append(Soldier((0x10, 0x30), self.enemy))
 
         self.player.enemy = self.enemy
         self.enemy.enemy = self.player
@@ -149,6 +151,9 @@ class Game():
         self.target_index = 0
         self.commander = commander
         self.grid = grid
+
+        
+        self.w1, self.w2 = [self.player.cavalry[0], self.enemy.soldiers[0]]
 
     def update(self) -> None:
         """
@@ -184,6 +189,9 @@ class Game():
         for unit in self.all_units:
             unit.update_move(delta_time)
             unit.draw(self.screen)
+
+        self.all_units = [u for u in self.all_units if not u.dead]
+        self.player.debug = f"{self.w1.dead} {self.w2.dead} {self.w1.prev_location}"
         
         self.screen.refresh()
 

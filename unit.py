@@ -25,6 +25,9 @@ class Unit():
         self.player.units = [u for u in self.player.units if u != self]
         self.player.game.all_units = [u for u in self.player.game.all_units if u != self]
         self.dead = True
+        self.player.game.screen.addstr(self.location[0] + 4, self.location[1] + 2, 
+                        " ", curses.color_pair(BLANK_COLOR))
+        self.player.game.screen.refresh()
 
     def set_desired_square(self, location):
         self.desired_square = location
@@ -49,8 +52,9 @@ class Unit():
     def draw(self, screen):
         screen.addstr(self.prev_location[0] + 4, self.prev_location[1] + 2, 
                         " ", curses.color_pair(BLANK_COLOR))
-        screen.addstr(self.location[0] + 4, self.location[1] + 2, 
-                        self.icon, self.player.color)
+        if not self.dead:
+            screen.addstr(self.location[0] + 4, self.location[1] + 2, 
+                            self.icon, self.player.color)
 
 class Villager(Unit):
     def __init__(self, location, player, capacity:int = None, 
@@ -210,6 +214,11 @@ class Villager(Unit):
                 self.set_gather_square(*self.nearest_gatherable(Resources.GOLD))
                 self.set_deliver_square(self.nearest_deliverable(Resources.GOLD))
                 pass
+
+            elif self.state_target == Resources.STONE:
+                self.set_gather_square(*self.nearest_gatherable(Resources.STONE))
+                self.set_deliver_square(self.nearest_deliverable(Resources.STONE))
+                pass
         if self.gather_square == None:
             pass
         if self.deliver_square == None:
@@ -244,13 +253,18 @@ class Army(Unit):
         r = randrange(10)
         if r < 3:
             target.die()
+            self.player.debug = "Dead"
 
 
     def attack_check(self):
-        if self.state_action == ArmyStates.ATTACK:        
-            nearest = self.nearest_attackable(self.state_target)
-        else:
-            nearest = self.nearest_attackable(None)
+        try:
+            if self.state_action == ArmyStates.ATTACK:        
+                nearest = self.nearest_attackable(self.state_target)
+            else:
+                nearest = self.nearest_attackable(None)
+        except ValueError:
+            self.state_action = ArmyStates.IDLE
+            self.state_target = None
         attackables = list(filter(self.is_attackable_unit, self.player.enemy.units))
         if attackables:
         # TODO: Fix this stupid repeated call to the same object.
@@ -262,9 +276,6 @@ class Army(Unit):
                 if actual_target.dead:
                     pass
 
-        else:
-            if self.location == self.desired_square:
-                exit("hello")
         # else:
         #     exit(f"{self.desired_square} {self.location}")
             
@@ -274,7 +285,11 @@ class Army(Unit):
         Updates movement if possible.
         """
         if self.state_action == ArmyStates.ATTACK:
-            self.desired_square = self.nearest_attackable(self.state_target)
+            try:
+                self.desired_square = self.nearest_attackable(self.state_target)
+            except ValueError:
+                self.state_action = ArmyStates.IDLE
+                self.state_target = None
         if self.location != self.desired_square and self.desired_square != None:
             self.time_on_task += delta_time
             self.attack_check()
