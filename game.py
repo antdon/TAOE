@@ -16,6 +16,7 @@ class CommandLine:
         self.command = ""
         self.screen = screen
         self.player = player
+        self.prev_command = ""
         self.unit_lookup = {"archer": self.player.archers, 
                             "soldier": self.player.soldiers,
                             "cavalry": self.player.cavalry}
@@ -27,6 +28,7 @@ class CommandLine:
                 "lumbercamp": LumberCamp}.get(word, None)
 
     def interpret_command(self):
+        self.prev_command = self.command
         words = self.command.split(" ")
         file = words[0].split("/")
         try:
@@ -115,6 +117,8 @@ class CommandLine:
         elif newkey == 10:
             self.interpret_command()
             self.command = ""
+        elif newkey == 259:
+            self.command = self.prev_command
         else:
             self.command += chr(newkey)
         self.draw()
