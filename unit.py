@@ -17,7 +17,6 @@ class Unit():
         self.time_on_task: int = 0 
         self.attack_range = 1
         self.attack_speed = 300
-        self.state_action = None
         self.dead = False
         self.player.game.all_units.append(self)
 
@@ -229,6 +228,12 @@ class Villager(Unit):
         self.player.villagers = [u for u in self.player.villagers if u != self]
         
 class Army(Unit):
+
+    def __init__(self, location, player, icon):
+        super().__init__(location, player, icon)
+        self.state_action = ArmyStates.IDLE
+        self.state_target = None
+
     def nearest_attackable(self, target=None):
         squares = []
         class_dict = {
@@ -291,8 +296,11 @@ class Army(Unit):
                 self.state_action = ArmyStates.IDLE
                 self.state_target = None
         if self.location != self.desired_square and self.desired_square != None:
+            
             self.time_on_task += delta_time
+            s = f"{self.time_on_task}"
             self.attack_check()
+            s += f"{self.time_on_task}"
             move_steps = self.time_on_task // self.move_speed
             self.time_on_task %= self.move_speed
             target_location = self.desired_square
@@ -300,6 +308,7 @@ class Army(Unit):
                 self.step(target_location)
                 if self.location == target_location:
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
+                    self.state_action = ArmyStates.IDLE
                     break
         else:
             self.time_on_task += delta_time

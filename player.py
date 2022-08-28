@@ -1,7 +1,8 @@
 from typing import List
 from structure import Structure, Town_Hall
-from unit import Unit, Villager
+from unit import Unit, Villager, Archer, Soldier, Cavalry 
 from constants import *
+from random import choice, randrange
 
 class Chieftian():
     def __init__(self) -> None:
@@ -34,3 +35,19 @@ class NPC(Chieftian):
     def __init__(self) -> None:
         super().__init__()
         self.color = curses.color_pair(ENEMY_COLOR)
+
+    def spawn(self, target):
+        for _ in range(len(target.units) + 2):
+            y,x = (randrange(0x27), randrange(0x4a,0x8b))
+            self.units.append(choice([Cavalry, Archer, Soldier])((y,x), self))
+            for unit in self.units:
+                unit.move_speed *= 2
+
+    def set_attacks(self):
+        
+        for unit in self.units:
+            if unit.state_action == ArmyStates.IDLE:
+                if filter(lambda u: u not in self.enemy.villagers, self.enemy.units):
+                    unit.set_attacking(choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]))
+                else:
+                    unit.set_attack(Units.VILLAGER)

@@ -64,8 +64,20 @@ class CommandLine:
                         ind = int(file[0][len(unit_type):])
                         chosen_unit = unit_container[ind]
                     except:
-                        self.player.debug = f"Error! {file[0]} is not a valid {unit_type}"
-                        return
+                        if file[0][len(unit_type):] == "s":
+                            if file[1] == "attack":
+                                for u in unit_container:
+                                    if words[1] == "soldier":
+                                        u.set_attacking(Units.SOLDIER)
+                                    if words[1] == "archer":
+                                        u.set_attacking(Units.ARCHER)
+                                    if words[1] == "cavalry":
+                                        u.set_attacking(Units.CAVALRY)
+                                    if words[1] == "villager":
+                                        u.set_attacking(Units.VILLAGER)
+                        else:
+                            self.player.debug = f"Error! {file[0]} is not a valid {unit_type}"
+                            return
                     if file[1] == "move":
                         try:
                             y,x = int(words[1], 16), int(words[2], 16)
@@ -129,7 +141,6 @@ class Game():
         self.player = player
         self.player.game = self
         self.player.units.append(Villager((23, 16), self.player))
-        self.player.units.append(Cavalry((0x0f, 0x67), self.player))
         Town_Hall((20, 10), self.player)
         self.map = grid
         self.debug = []
@@ -141,7 +152,8 @@ class Game():
         self.enemy = NPC()
         self.enemy.game = self
         self.enemy.units.append(Soldier((0x10, 0x70), self.enemy))
-        self.enemy.units.append(Soldier((0x10, 0x30), self.enemy))
+        for unit in self.enemy.units:
+            unit.move_speed *= 2
 
         self.player.enemy = self.enemy
         self.enemy.enemy = self.player
@@ -151,9 +163,6 @@ class Game():
         self.target_index = 0
         self.commander = commander
         self.grid = grid
-
-        
-        self.w1, self.w2 = [self.player.cavalry[0], self.enemy.soldiers[0]]
 
     def update(self) -> None:
         """
@@ -191,7 +200,17 @@ class Game():
             unit.draw(self.screen)
 
         self.all_units = [u for u in self.all_units if not u.dead]
-        self.player.debug = f"{self.w1.dead} {self.w2.dead} {self.w1.prev_location}"
+        # self.player.debug = f"{self.player.cavalry}"
+
+        for unit in self.all_units:
+            if unit.state_action == ArmyStates.IDLE:
+                unit.time_on_task = 0
+
+        if not self.enemy.units:
+            self.enemy.spawn(self.player)
+
+        if self.time > 100000:
+            self.enemy.set_attacks()
         
         self.screen.refresh()
 
