@@ -35,5 +35,5 @@ class Berry(Incidental):
     def __init__(self, location) -> None:
         super().__init__(location)
         self.color = curses.color_pair(BERRY_COLOR)
-        self.resources = [Resources.FOOD, FoodTypes.BERRIES]
+        self.resources = [Resources.FOOD]
         self.rep = choice("⋮⁖∴:")

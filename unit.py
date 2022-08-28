@@ -3,7 +3,7 @@ import time
 from typing import List
 from map import Map
 from incidental import Tree
-from random import random
+from random import random, randrange
 from constants import *
 
 
@@ -14,8 +14,14 @@ class Unit():
         self.location = location
         self.player = player
         self.icon = icon
-        self.time_on_task: int = 0
+        self.time_on_task: int = 0 
+        self.attack_range = 1
+        self.state_action = None
         self.player.game.all_units.append(self)
+
+    def die(self):
+        self.player.units = [u for u in self.player.units if u != self]
+        self.player.game.all_units = [u for u in self.player.game.all_units if u != self]
 
     def set_desired_square(self, location):
         self.desired_square = location
@@ -49,7 +55,7 @@ class Villager(Unit):
         if capacity == None:
             capacity = VILLAGER_STATS["capacity"]
         super().__init__(location, player, "V")
-        self.capacity = capacity 
+        self.capacity = capacity
         self.resources = [0,0,0,0]
         self.gather_rate: int = 300
         self.move_speed = move_speed
@@ -205,14 +211,69 @@ class Villager(Unit):
             pass
         if self.deliver_square == None:
             pass
+    
+    def die(self):
+        super().die()
+        self.player.villagers = [u for u in self.player.villagers if u != self]
         
 class Army(Unit):
+    def nearest_attackable(self, target=None):
+        squares = []
+        class_dict = {
+            Units.ARCHER: Archer,
+            Units.CAVALRY: Cavalry,
+            Units.SOLDIER: Soldier,
+            Units.VILLAGER: Villager
+        }
+        if target != None:
+            for unit in self.player.enemy.units:
+                if type(unit) == class_dict[target]:
+                    squares += self.player.game.grid.grid[unit.location].get_neighbours()
+        else:
+            for unit in self.player.enemy.units:
+                squares += self.player.game.grid.grid[unit.location].get_neighbours()
+        return min(squares, key=lambda square: square.get_dist(self.location)).coordinate
+
+    def is_attackable_unit(self, unit):
+        return self.player.game.grid.grid[unit.location].get_dist(self.location) <= self.attack_range
+
+    def attack_once(self, target):
+        r = randrange(10)
+        if r < 3:
+            target.die()
+            exit(f"Success")
+
+    def attack_check(self):
+        if self.state_action == ArmyStates.ATTACK:        
+            nearest = self.nearest_attackable(self.state_target)
+        else:
+            nearest = self.nearest_attackable(None)
+        # self.player.debug = self.player.game.grid.grid[nearest].get_dist(self.location)
+        self.player.debug = f"{self.location, [(u.location, self.is_attackable_unit(u), self.player.game.grid.grid[u.location].get_dist(self.location)) for u in self.player.enemy.units]}"
+        attackables = list(filter(self.is_attackable_unit, self.player.enemy.units))
+        if attackables:
+        # TODO: Fix this stupid repeated call to the same object.
+            actual_target = list(attackables)[0]
+            attack_steps = self.time_on_task // self.attack_speed
+            self.time_on_task %= self.attack_speed
+            for a in range(attack_steps):
+                self.attack_once(actual_target)
+        else:
+            if self.location == self.desired_square:
+                exit("hello")
+        # else:
+        #     exit(f"{self.desired_square} {self.location}")
+            
+            
     def update_move(self, delta_time):
         """
         Updates movement if possible.
         """
+        if self.state_action == ArmyStates.ATTACK:
+            self.desired_square = self.nearest_attackable(self.state_target)
         if self.location != self.desired_square and self.desired_square != None:
             self.time_on_task += delta_time
+            self.attack_check()
             move_steps = self.time_on_task // self.move_speed
             self.time_on_task %= self.move_speed
             target_location = self.desired_square
@@ -221,6 +282,10 @@ class Army(Unit):
                 if self.location == target_location:
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
                     break
+    
+    def set_attacking(self, target_unit):
+        self.state_action = ArmyStates.ATTACK
+        self.state_target = target_unit
 
     def battle(self, target: Unit, difficulty: float, delta_time):
         """
@@ -244,6 +309,7 @@ class Army(Unit):
                 break
         return killed
 
+
 class Soldier(Army):
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "S")
@@ -253,14 +319,24 @@ class Soldier(Army):
         self.move_speed = SOLDIER_SPEED
         self.player.soldiers.append(self)
 
+    def die(self):
+        super().die()
+        self.player.soldiers = [u for u in self.player.soldiers if u != self]
+
 class Archer(Army):
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "A")
         self.level = level
         self.hit_rate: int = 500
+        self.attack_range = 5
         self.desired_square = None
         self.move_speed = ARCHER_SPEED
         self.player.archers.append(self)
+
+    
+    def die(self):
+        super().die()
+        self.player.archers = [u for u in self.player.archers if u != self]
 
 class Cavalry(Army):
     def __init__(self, location, player, level: int =1) -> None:
@@ -270,3 +346,7 @@ class Cavalry(Army):
         self.desired_square = None
         self.move_speed = CAVALRY_SPEED
         self.player.cavalry.append(self)
+    
+    def die(self):
+        super().die()
+        self.player.cavalry = [u for u in self.player.cavalry if u != self]

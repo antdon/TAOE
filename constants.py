@@ -40,21 +40,26 @@ resource_names = {
     Resources.GOLD: "Gold",
 }
 
-class FoodTypes(Enum):
-    SHEEP = 0
-    FARM = 1
-    BERRIES = 2
-
 class VillagerStates(Enum):
     IDLE = 0
     GATHER = 1
     BUILD = 2
     
+class ArmyStates(Enum):
+    IDLE = 0
+    MOVE = 1
+    ATTACK = 2
 
 class Buildings(Enum):
     TOWNHALL = 0
     MINE = 1
     MILL = 2
+
+class Units(Enum):
+    VILLAGER = 0
+    SOLDIER = 1
+    ARCHER = 2
+    CAVALRY = 3
 
 #TODO: Refactor the other alert messages to read like this.
 def read_cost(name, cost):

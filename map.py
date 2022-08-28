@@ -20,6 +20,7 @@ class Tile:
                     (self.coordinate[0]+y, self.coordinate[1]+x), None)
                 if n:
                     squares.append(n)
+
         return squares
 
     def get_dist(self, coord: tuple[int, int]) -> int:

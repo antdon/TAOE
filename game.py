@@ -2,7 +2,7 @@ from typing import List
 from map import Map
 from player import NPC, Player
 from structure import Build_Site, Town_Hall, Mine, Mill, LumberCamp
-from unit import Soldier, Villager
+from unit import Soldier, Villager, Cavalry
 from copy import deepcopy
 import time
 from constants import *
@@ -72,8 +72,19 @@ class CommandLine:
                         except ValueError:
                             self.player.debug = f"Invalid coordinates! (Remember row first)"
                             return
+                        chosen_unit.state_action = ArmyStates.MOVE
+                        chosen_unit.state_target = None
                         chosen_unit.set_desired_square((y,x))
                         return
+                    if file[1] == "attack":
+                        if words[1] == "soldier":
+                            chosen_unit.set_attacking(Units.SOLDIER)
+                        if words[1] == "archer":
+                            chosen_unit.set_attacking(Units.ARCHER)
+                        if words[1] == "cavalry":
+                            chosen_unit.set_attacking(Units.CAVALRY)
+                        if words[1] == "villager":
+                            chosen_unit.set_attacking(Units.VILLAGER)
             if self.command == "townhall/create villager":
                 self.player.structures[0].create_villager()
             elif self.command == "townhall/create soldier":
@@ -117,6 +128,7 @@ class Game():
         self.player = player
         self.player.game = self
         self.player.units.append(Villager((23, 16), self.player))
+        self.player.units.append(Cavalry((0x0f, 0x67), self.player))
         Town_Hall((20, 10), self.player)
         self.map = grid
         self.debug = []
@@ -128,6 +140,9 @@ class Game():
         self.enemy = NPC()
         self.enemy.game = self
         self.enemy.units.append(Soldier((0x10, 0x70), self.enemy))
+
+        self.player.enemy = self.enemy
+        self.enemy.enemy = self.player
 
 
         self.tree = self.incidentals[0]
