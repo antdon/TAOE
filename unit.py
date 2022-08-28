@@ -16,12 +16,15 @@ class Unit():
         self.icon = icon
         self.time_on_task: int = 0 
         self.attack_range = 1
+        self.attack_speed = 300
         self.state_action = None
+        self.dead = False
         self.player.game.all_units.append(self)
 
     def die(self):
         self.player.units = [u for u in self.player.units if u != self]
         self.player.game.all_units = [u for u in self.player.game.all_units if u != self]
+        self.dead = True
 
     def set_desired_square(self, location):
         self.desired_square = location
@@ -241,15 +244,13 @@ class Army(Unit):
         r = randrange(10)
         if r < 3:
             target.die()
-            exit(f"Success")
+
 
     def attack_check(self):
         if self.state_action == ArmyStates.ATTACK:        
             nearest = self.nearest_attackable(self.state_target)
         else:
             nearest = self.nearest_attackable(None)
-        # self.player.debug = self.player.game.grid.grid[nearest].get_dist(self.location)
-        self.player.debug = f"{self.location, [(u.location, self.is_attackable_unit(u), self.player.game.grid.grid[u.location].get_dist(self.location)) for u in self.player.enemy.units]}"
         attackables = list(filter(self.is_attackable_unit, self.player.enemy.units))
         if attackables:
         # TODO: Fix this stupid repeated call to the same object.
@@ -258,6 +259,9 @@ class Army(Unit):
             self.time_on_task %= self.attack_speed
             for a in range(attack_steps):
                 self.attack_once(actual_target)
+                if actual_target.dead:
+                    pass
+
         else:
             if self.location == self.desired_square:
                 exit("hello")
@@ -282,6 +286,9 @@ class Army(Unit):
                 if self.location == target_location:
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
                     break
+        else:
+            self.time_on_task += delta_time
+            self.attack_check()
     
     def set_attacking(self, target_unit):
         self.state_action = ArmyStates.ATTACK
