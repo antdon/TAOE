@@ -37,7 +37,7 @@ class NPC(Chieftian):
         self.color = curses.color_pair(ENEMY_COLOR)
 
     def spawn(self, target):
-        for _ in range(len(target.units) + 2):
+        for _ in range(len(target.units) - len(target.villagers) + 2):
             y,x = (randrange(0x27), randrange(0x4a,0x8b))
             self.units.append(choice([Cavalry, Archer, Soldier])((y,x), self))
             for unit in self.units:

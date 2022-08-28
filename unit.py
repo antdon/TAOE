@@ -350,6 +350,14 @@ class Soldier(Army):
         self.move_speed = SOLDIER_SPEED
         self.player.soldiers.append(self)
 
+    
+
+    def get_index(self):
+        if self in self.player.soldiers:
+            return self.player.soldiers.index(self)
+        else:
+            return None
+
     def die(self):
         super().die()
         self.player.soldiers = [u for u in self.player.soldiers if u != self]
@@ -364,6 +372,12 @@ class Archer(Army):
         self.move_speed = ARCHER_SPEED
         self.player.archers.append(self)
 
+
+    def get_index(self):
+        if self in self.player.archers:
+            return self.player.archers.index(self)
+        else:
+            return None
     
     def die(self):
         super().die()
@@ -377,6 +391,14 @@ class Cavalry(Army):
         self.desired_square = None
         self.move_speed = CAVALRY_SPEED
         self.player.cavalry.append(self)
+
+    
+
+    def get_index(self):
+        if self in self.player.cavalry:
+            return self.player.cavalry.index(self)
+        else:
+            return None
     
     def die(self):
         super().die()

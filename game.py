@@ -169,7 +169,7 @@ class Game():
         function called every frame 
         """
         time_now = round(time.time() * 1000) - self.start_time
-        delta_time = time_now - self.time
+        delta_time = (time_now - self.time) * 2
         self.time = time_now
 
         self.screen.nodelay(1)
@@ -211,6 +211,8 @@ class Game():
 
         if self.time > 100000:
             self.enemy.set_attacks()
+
+        self.player.debug = f"{[u.get_index() for u in self.player.units if u not in self.player.villagers]}"
         
         self.screen.refresh()
 
