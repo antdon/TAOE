@@ -1,13 +1,13 @@
 from typing import List
 from structure import Structure, Town_Hall
 from unit import Unit, Villager
+from constants import *
 
 class Chieftian():
     def __init__(self) -> None:
         self.structures: List[Structure] = []
-        self.town_hall = Town_Hall((20, 10), self)
         self.villagers: List[Villager] = []
-        self.units: List[Unit] = [Villager((23, 16), self)]
+        self.units: List[Unit] = []
         self.soldiers: List[Unit] = []
         self.archers: List[Unit] = []
         self.cavalry: List[Unit] = []
@@ -28,7 +28,9 @@ class Player(Chieftian):
     def __init__(self) -> None:
         super().__init__()
         self.debug = ""
+        self.color = curses.color_pair(PLAYER_COLOR)
 
 class NPC(Chieftian):
     def __init__(self) -> None:
         super().__init__()
+        self.color = curses.color_pair(ENEMY_COLOR)

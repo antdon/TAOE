@@ -15,6 +15,7 @@ class Unit():
         self.player = player
         self.icon = icon
         self.time_on_task: int = 0
+        self.player.game.all_units.append(self)
 
     def set_desired_square(self, location):
         self.desired_square = location
@@ -40,7 +41,7 @@ class Unit():
         screen.addstr(self.prev_location[0] + 4, self.prev_location[1] + 2, 
                         " ", curses.color_pair(BLANK_COLOR))
         screen.addstr(self.location[0] + 4, self.location[1] + 2, 
-                        self.icon, curses.color_pair(PLAYER_COLOR))
+                        self.icon, self.player.color)
 
 class Villager(Unit):
     def __init__(self, location, player, capacity:int = None, 
