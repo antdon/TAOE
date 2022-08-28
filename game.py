@@ -117,6 +117,8 @@ class CommandLine:
         elif newkey == 10:
             self.interpret_command()
             self.command = ""
+        elif newkey == 27:
+            self.command = ""
         elif newkey == 259:
             self.command = self.prev_command
         else:
