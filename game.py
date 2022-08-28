@@ -212,7 +212,7 @@ class Game():
         if self.time > 100000:
             self.enemy.set_attacks()
 
-        self.player.debug = f"{[u.get_index() for u in self.player.units if u not in self.player.villagers]}"
+        # self.player.debug = f"{[u.get_index() for u in self.player.units if u not in self.player.villagers]}"
         
         self.screen.refresh()
 
