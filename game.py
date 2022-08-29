@@ -16,7 +16,8 @@ class CommandLine:
         self.command = ""
         self.screen = screen
         self.player = player
-        self.prev_command = ""
+        self.command_history = []
+        self.history_pointer = 0
 
     def state_lookup(self, word: str):
         return {"berry": Resources.FOOD, "food": Resources.FOOD,
@@ -121,19 +122,35 @@ class CommandLine:
         except:
             self.player.debug = "I don't understand."
 
+    def set_history_pointer(self, target: int):
+        self.history_pointer = max(0, min(target, len(self.command_history)))
+
+    def get_command_at_pointer(self):
+        try:
+            return self.command_history[self.history_pointer]
+        except IndexError:
+            return ""
+
+    def clear_command(self):
+        self.set_history_pointer(len(self.command_history))
+        self.command = self.get_command_at_pointer()
 
     def update(self, newkey):
         if newkey == 263:
             self.command = self.command[:-1]
         elif newkey == 10:
-            self.prev_command = self.command
+            self.command_history.append(self.command)
             for command in self.command.split(";"):
                 self.interpret_command(command.strip())
-            self.command = ""
+            self.clear_command()
         elif newkey == 27:
-            self.command = ""
+            self.clear_command()
         elif newkey == 259:
-            self.command = self.prev_command
+            self.set_history_pointer(self.history_pointer - 1)
+            self.command = self.get_command_at_pointer()
+        elif newkey == 258:
+            self.set_history_pointer(self.history_pointer + 1)
+            self.command = self.get_command_at_pointer()
         else:
             self.command += chr(newkey)
         self.draw()
@@ -230,6 +247,8 @@ class Game():
 
         if self.time > 100000:
             self.enemy.set_attacks()
+
+        self.player.debug = f"{self.commander.history_pointer}"
 
         
         self.screen.refresh()
