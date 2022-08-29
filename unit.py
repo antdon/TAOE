@@ -30,6 +30,7 @@ class Unit():
 
     def set_desired_square(self, location):
         self.desired_square = location
+        
 
     def step(self, location):
         self.prev_location = self.location
@@ -74,6 +75,10 @@ class Villager(Unit):
         self.target_incidental = None
         self.debug_info = ""
         self.player.villagers.append(self)
+
+    def stop(self):
+        self.state_action = VillagerStates.IDLE
+        self.state_target = None
 
 
     def set_gather_square(self, square, incidental, resource):
@@ -120,6 +125,7 @@ class Villager(Unit):
                     if structure.can_receive(Resources(i)):
                         self.player.structures[0].resources[i] += x
                         self.resources[i] = 0
+                        self.update_target_square()
 
     def carried_resource(self):
         for i,x in enumerate(self.resources):
@@ -242,6 +248,11 @@ class Army(Unit):
 
     def __init__(self, location, player, icon):
         super().__init__(location, player, icon)
+        self.state_action = ArmyStates.IDLE
+        self.state_target = None
+
+
+    def stop(self):
         self.state_action = ArmyStates.IDLE
         self.state_target = None
 

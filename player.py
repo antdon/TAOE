@@ -43,7 +43,7 @@ class NPC(Chieftain):
 
     def spawn(self, target):
         for _ in range(len(target.units) - len(target.villagers) + 2):
-            y,x = (randrange(0x27), randrange(0x4a,0x8b))
+            y,x = (randrange(MAPHEIGHT), randrange(0x4a,MAPWIDTH))
             self.units.append(choice([Cavalry, Archer, Soldier])((y,x), self))
             for unit in self.units:
                 unit.move_speed *= 2

@@ -89,7 +89,9 @@ class CommandLine:
                     if file[1] == "move":
                         try:
                             y,x = int(words[1], 16), int(words[2], 16)
-                        except ValueError:
+                            if (y,x) not in self.player.game.grid.grid:
+                                raise KeyError
+                        except (ValueError, KeyError):
                             self.player.debug = f"Invalid coordinates! (Remember row first)"
                             return
                         chosen_unit.state_action = ArmyStates.MOVE
@@ -163,9 +165,9 @@ class Game():
     def __init__(self, grid: Map, player: Player, screen, 
                  commander: CommandLine) -> None:
         self.screen = screen
-        for y in range(40):
+        for y in range(MAPHEIGHT):
             self.screen.addstr(y+4, 0, f"{hex(y)[2:].zfill(2)}")
-        for x in range(140):
+        for x in range(MAPWIDTH):
             xval = hex(x)[2:].zfill(2)
             self.screen.addstr(2, x+2, f"{xval[0]}")
             self.screen.addstr(3, x+2, f"{xval[1]}")
