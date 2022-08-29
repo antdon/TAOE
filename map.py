@@ -1,10 +1,13 @@
 from typing import List 
 import itertools
-
+from constants import *
 from incidental import Berry, Rocks, Tree, Vein
 
+class Map:
+    pass
+
 class Tile:
-    def __init__(self, coordinate, tilemap) -> None:
+    def __init__(self, coordinate: tuple[int, int], tilemap: Map) -> None:
         self.coordinate = coordinate
         self.tilemap = tilemap
         self.content = None
@@ -29,28 +32,17 @@ class Tile:
 
 class Map():
     def __init__(self) -> None:
-        #TODO: Move the constants to constants.
         self.grid : dict[Tile] = {(y,x) : Tile((y,x), self) 
             for y,x in itertools.product(range(40), range(140))}
-        for i in range(20,29):
-            for j in range(47,57):
-                self.grid[(i, j)].content = Tree((i,j))
 
-        for i in range(7, 9):
-            for j in range(4,13):
-                self.grid[(i, j)].content = Berry((i,j))
-
-        for i in range(37, 40):
-            for j in range(20, 30):
-                self.grid[(i, j)].content = Vein((i,j))
-
-        for i in range(30, 33):
-            for j in range(3, 15):
-                self.grid[(i, j)].content = Rocks((i,j))
-
-        for i in range(3, 8):
-            for j in range(54, 60):
-                self.grid[(i, j)].content = Berry((i,j))
+        #TODO: Make a bit more OO.
+        for locations,resource in [(BERRY_LOCATIONS, Berry), 
+                (TREE_LOCATIONS, Tree), (ROCK_LOCATIONS, Rocks), 
+                (VEIN_LOCATIONS, Vein)]:
+            for left,top,width,height in locations:
+                for i,j in itertools.product(range(left,left+width), 
+                                            range(top, top+height)):
+                    self.grid[(i, j)].content = resource((i,j))
 
 
 

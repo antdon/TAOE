@@ -74,3 +74,9 @@ def read_cost(name, cost):
 
 VILLAGER_COST = {Resources.FOOD: 40}
 COLLECTOR_COST =  {Resources.WOOD: 60, Resources.STONE: 25}
+
+#TODO: This is actually just the first map...
+BERRY_LOCATIONS = [(7,4,2,9), (3,54,5,6)]
+TREE_LOCATIONS = [(20,47,9,10)]
+VEIN_LOCATIONS = [(37,20,3,10)]
+ROCK_LOCATIONS = [(30,3,3,12)]

@@ -12,7 +12,7 @@ import asyncio
 
 
 class CommandLine:
-    def __init__(self, screen, player):
+    def __init__(self, screen, player: Player):
         self.command = ""
         self.screen = screen
         self.player = player
@@ -21,7 +21,7 @@ class CommandLine:
                             "soldier": self.player.soldiers,
                             "cavalry": self.player.cavalry}
 
-    def state_lookup(self, word):
+    def state_lookup(self, word: str):
         return {"berry": Resources.FOOD, "food": Resources.FOOD,
                 "gold": Resources.GOLD, "wood": Resources.WOOD,
                 "stone": Resources.STONE, "mine": Mine, "mill": Mill, 
