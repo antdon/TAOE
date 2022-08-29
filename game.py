@@ -24,9 +24,8 @@ class CommandLine:
                 "stone": Resources.STONE, "mine": Mine, "mill": Mill, 
                 "lumbercamp": LumberCamp, "barracks": Barracks}.get(word, None)
 
-    def interpret_command(self):
-        self.prev_command = self.command
-        words = self.command.split(" ")
+    def interpret_command(self, command):
+        words = command.split(" ")
         file = words[0].split("/")
         
         unit_lookup = {"archer": self.player.archers, 
@@ -105,19 +104,19 @@ class CommandLine:
                             chosen_unit.set_attacking(Units.CAVALRY)
                         if words[1] == "villager":
                             chosen_unit.set_attacking(Units.VILLAGER)
-            if self.command == "townhall/create villager":
+            if command == "townhall/create villager":
                 self.player.structures[0].create_villager()
-            elif self.command == "barracks/create soldier":
+            elif command == "barracks/create soldier":
                 self.player.get_barracks().create_soldier()
-            elif self.command == "barracks/create archer":
+            elif command == "barracks/create archer":
                 self.player.get_barracks().create_archer()
-            elif self.command == "barracks/create cavalry":
+            elif command == "barracks/create cavalry":
                 self.player.get_barracks().create_cavalry()
-            elif self.command == "townhall/create soldier":
+            elif command == "townhall/create soldier":
                 self.player.debug = "You build those at a barracks."
-            elif self.command == "townhall/create archer":
+            elif command == "townhall/create archer":
                 self.player.debug = "You build those at a barracks."
-            elif self.command == "townhall/create cavalry":
+            elif command == "townhall/create cavalry":
                 self.player.debug = "You build those at a barracks."
         except:
             self.player.debug = "I don't understand."
@@ -127,7 +126,9 @@ class CommandLine:
         if newkey == 263:
             self.command = self.command[:-1]
         elif newkey == 10:
-            self.interpret_command()
+            self.prev_command = self.command
+            for command in self.command.split(";"):
+                self.interpret_command(command.strip())
             self.command = ""
         elif newkey == 27:
             self.command = ""
