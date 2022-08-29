@@ -13,10 +13,11 @@ Here are some instructions to run in your first game:
 Villagers can also build:
 * lumbercamp
 * mine
+* barracks
 
 As long as you tell them what coordinates to build them at (Row, Column in hex per sides of screen)
 
-The Town Hall can also create:
+The Barracks can create:
 * soldier
 * archer
 * cavalry
