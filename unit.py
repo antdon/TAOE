@@ -1,4 +1,3 @@
-from importlib.resources import Resource
 import time
 from typing import List
 from map import Map
