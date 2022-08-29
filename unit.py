@@ -1,7 +1,7 @@
 import time
 from typing import List
-from map import Map
 from incidental import Tree
+from tilegrid import TileGrid
 from random import random, randrange
 from constants import *
 
@@ -40,7 +40,7 @@ class Unit():
         self.location = (self.location[0] + direction[0],
                          self.location[1] + direction[1])
 
-    def neighbourhood(self, map: Map):
+    def neighbourhood(self, map: TileGrid):
         surroundings = []
         for tile in map:
             if tile.content:

@@ -1,6 +1,5 @@
 from constants import *
 from player import Player
-from map import Map
 from game import *
 from incidental import *
 from commandline import *
