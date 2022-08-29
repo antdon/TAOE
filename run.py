@@ -8,7 +8,7 @@ from commandline import *
 def main(stdscr):
     # Clear screen
     stdscr.clear()
-    game = Game(stdscr, is_npc_game = False)
+    game = Game(stdscr, is_npc_game = True)
     curses.init_color(8,0,250,0)
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(ENEMY_COLOR, curses.COLOR_BLACK, curses.COLOR_YELLOW)

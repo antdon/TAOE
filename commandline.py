@@ -142,10 +142,12 @@ class CommandLine:
         elif newkey == 258:
             self.set_history_pointer(self.history_pointer + 1)
             self.command = self.get_command_at_pointer()
+        elif newkey == 9:
+            self.player.game.switch_players()
         else:
             self.command += chr(newkey)
         self.draw()
 
     def draw(self):
-        self.screen.addstr(COMMANDLINE_Y, 0, " "*100)
-        self.screen.addstr(COMMANDLINE_Y, 0, self.command)
+        self.player.screen.addstr(COMMANDLINE_Y, 0, " "*100)
+        self.player.screen.addstr(COMMANDLINE_Y, 0, self.command)

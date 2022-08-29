@@ -38,6 +38,8 @@ class Game:
         self.time: int = round(time.time() * 1000)
         self.start_time = self.time
 
+        self.player_pointer = 0
+
         # TODO: multiplayer
         if is_npc_game:
             self.players = [Player(screen, self, PLAYER_COLOR)]
@@ -70,6 +72,12 @@ class Game:
             self.enemy.enemy = self.players[0]
 
         self.target_index = 0
+
+    def switch_players(self):
+        if not self.is_npc_game:
+            self.player_pointer = 1 - self.player_pointer
+            self.players[self.player_pointer].screen = self.screen
+            self.players[1-self.player_pointer].screen = NullScreen()
 
     def update(self) -> None:
         """

@@ -35,8 +35,8 @@ class Structure():
         pass
 
     def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, "Buil", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "ding", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+4, self.location[1] + 2, "Buil", self.player.color)
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "ding", self.player.color)
 
 
 class Town_Hall(Structure):
@@ -106,8 +106,8 @@ class Barracks(Structure):
             self.player.debug = read_cost("Cavalry", CAVALRY_COST)
 
     def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, "Barr", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "acks", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+4, self.location[1] + 2, "Barr", self.player.color)
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "acks", self.player.color)
 
 
 class Collector(Structure):
@@ -130,8 +130,8 @@ class Mine(Collector):
         return resource in [Resources.GOLD, Resources.STONE]
 
     def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+5, self.location[1] + 2, " NE ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", self.player.color)
+        screen.addstr(self.location[0]+5, self.location[1] + 2, " NE ", self.player.color)
 
 
 class Mill(Collector):
@@ -143,8 +143,8 @@ class Mill(Collector):
         return resource in [Resources.FOOD]
 
     def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+5, self.location[1] + 2, " LL ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", self.player.color)
+        screen.addstr(self.location[0]+5, self.location[1] + 2, " LL ", self.player.color)
 
 class LumberCamp(Collector):
     @staticmethod
@@ -155,8 +155,8 @@ class LumberCamp(Collector):
         return resource in [Resources.WOOD]
 
     def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, " Lum", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "Camp", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+4, self.location[1] + 2, " Lum", self.player.color)
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "Camp", self.player.color)
         
 
 class Build_Site(Structure):
