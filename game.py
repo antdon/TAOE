@@ -174,6 +174,8 @@ class Game():
         self.all_units = []
         self.time: int = round(time.time() * 1000)
         self.start_time = self.time
+
+        # TODO: multiplayer
         self.player = player
         self.player.game = self
         self.player.units.append(Villager((23, 16), self.player))
@@ -185,6 +187,7 @@ class Game():
             if tile.content:
                 self.incidentals.append(tile.content)
 
+        # TODO: multiplayer
         self.enemy = NPC()
         self.enemy.game = self
         self.enemy.units.append(Soldier((0x10, 0x70), self.enemy))
@@ -194,9 +197,9 @@ class Game():
         self.player.enemy = self.enemy
         self.enemy.enemy = self.player
 
-
-        self.tree = self.incidentals[0]
         self.target_index = 0
+
+        #TODO: Fix this for multiplayer
         self.commander = commander
         self.grid = grid
 
@@ -220,23 +223,18 @@ class Game():
         self.screen.addstr(COMMANDLINE_Y - 1,0, f" " * 100)
         self.screen.addstr(COMMANDLINE_Y - 1,0, f"{self.player.debug} ")
 
-
         for structure in self.player.structures:
             structure.update()
             structure.draw(self.screen)
 
         for incidental in self.incidentals:
             incidental.draw(self.screen)
-        
-        
-        #self.commander.command = "villager/gather gold"
-        #self.commander.interpret_command()
+
         for unit in self.all_units:
             unit.update_move(delta_time)
             unit.draw(self.screen)
 
         self.all_units = [u for u in self.all_units if not u.dead]
-        # self.player.debug = f"{self.player.cavalry}"
 
         for unit in self.all_units:
             if unit.state_action == ArmyStates.IDLE:
@@ -248,7 +246,7 @@ class Game():
         if self.time > 100000:
             self.enemy.set_attacks()
 
-        self.player.debug = f"{self.commander.history_pointer}"
+        # self.player.debug = f"{self.commander.history_pointer}"
 
         
         self.screen.refresh()
