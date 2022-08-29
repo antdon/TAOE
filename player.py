@@ -1,10 +1,10 @@
 from typing import List
-from structure import Structure, Town_Hall
+from structure import Structure, Town_Hall, Barracks
 from unit import Unit, Villager, Archer, Soldier, Cavalry 
 from constants import *
 from random import choice, randrange
 
-class Chieftian():
+class Chieftain():
     def __init__(self) -> None:
         self.structures: List[Structure] = []
         self.villagers: List[Villager] = []
@@ -25,13 +25,18 @@ class Chieftian():
             self.structures[0].resources[int(resource.value)] -= amount
         
 
-class Player(Chieftian):
+class Player(Chieftain):
     def __init__(self) -> None:
         super().__init__()
         self.debug = ""
         self.color = curses.color_pair(PLAYER_COLOR)
 
-class NPC(Chieftian):
+    def get_barracks(self):
+        for structure in self.structures:
+            if type(structure) == Barracks:
+                return structure
+
+class NPC(Chieftain):
     def __init__(self) -> None:
         super().__init__()
         self.color = curses.color_pair(ENEMY_COLOR)

@@ -67,10 +67,12 @@ class Villager(Unit):
         self.move_speed = move_speed
         self.deliver_square = None
         self.state_action = VillagerStates.IDLE
+        self.state_target = None
         self.gathering_resource = None
         self.gather_square = None
         self.desired_resource = None
         self.target_incidental = None
+        self.debug_info = ""
         self.player.villagers.append(self)
 
 
@@ -119,13 +121,22 @@ class Villager(Unit):
                         self.player.structures[0].resources[i] += x
                         self.resources[i] = 0
 
+    def carried_resource(self):
+        for i,x in enumerate(self.resources):
+            if x: return Resources(i)
+        return None
+
     def get_target_square(self):
         if self.state_action == VillagerStates.BUILD:
             return self.desired_square
-        if self.capacity_reached():
-            return self.deliver_square
+        if self.state_action == VillagerStates.GATHER and self.needs_delivery(
+            self.desired_resource):
+            return self.nearest_deliverable(self.carried_resource())
         else:
             return self.gather_square
+
+    def get_debug_info(self):
+        return (f"{self.debug_info}")
 
     def update_move(self, delta_time):
         """
@@ -135,15 +146,15 @@ class Villager(Unit):
             return
         if self.state_action == VillagerStates.BUILD:
             if self.location == self.desired_square:
-                if self.player.can_afford(self.state_target.get_cost()):
-                    self.state_target(self.location, self.player)
+                Building = self.state_target
+                if self.player.can_afford(Building.get_cost()):
+                    Building(self.location, self.player)
                     for villager in self.player.villagers:
                         villager.update_target_square()
-                    self.set_state(VillagerStates.GATHER, self.state_target.get_next_resource())
+                    self.set_state(*Building.get_next_state())
                 else:
                     self.player.debug = "Not enough resources to build building."
-                    self.set_state(VillagerStates.IDLE, None)
-                
+                    self.set_state(VillagerStates.IDLE, None)    
         if self.location == self.gather_square and not self.needs_delivery(
                                 self.desired_resource):
             self.gather(self.target_incidental, delta_time)

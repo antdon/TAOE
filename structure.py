@@ -23,9 +23,20 @@ class Structure():
         # exit('hello')
         return [self.player.game.grid.grid.get(s, None) for s in squares if s]
         
+    @staticmethod
+    def get_next_state():
+        return VillagerStates.IDLE, None
+
+    def can_receive(self, resource):
+        return resource in []
 
     def update(self) -> None:
         pass
+
+    def draw(self, screen):
+        screen.addstr(self.location[0]+4, self.location[1] + 2, "Buil", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "ding", curses.color_pair(PLAYER_COLOR))
+
 
 class Town_Hall(Structure):
     """
@@ -38,7 +49,7 @@ class Town_Hall(Structure):
         super().__init__(location, player)
         self.size = (3, 6)
         # [food, wood, stone, gold]
-        self.resources = [100,100,100,100]
+        self.resources = [200, 300, 100, 100]
 
     def can_receive(self, resource):
         return True
@@ -51,38 +62,52 @@ class Town_Hall(Structure):
             self.resources[int(Resources.FOOD.value)] -= VILLAGER_COST[Resources.FOOD]
             self.player.units.append(Villager(self.location, self.player))
 
-    def create_soldier(self):
-        if self.resources[int(Resources.FOOD.value)] < 60 or self.resources[int(Resources.GOLD.value)] < 40:
-            self.player.debug = "A soldier costs 60 food and 40 wood to make"
-        else:
-            self.resources[int(Resources.FOOD.value)] -= 60
-            self.resources[int(Resources.GOLD.value)] -= 40
-            self.player.units.append(Soldier(self.location,self.player))
-
-    
-    def create_archer(self):
-        if self.resources[int(Resources.FOOD.value)] < 40 or self.resources[int(Resources.WOOD.value)] < 25:
-            self.player.debug = "An archer costs 40 food and 25 wood to make"
-        else:
-            self.resources[int(Resources.FOOD.value)] -= 40
-            self.resources[int(Resources.WOOD.value)] -= 25
-            self.player.units.append(Archer(self.location,self.player))
-    
-    def create_cavalry(self):
-        if self.resources[int(Resources.FOOD.value)] < 100 or self.resources[int(Resources.GOLD.value)] < 60:
-            self.player.debug = "A cavalry costs 100 food and 60 gold to make"
-        else:
-            self.resources[int(Resources.FOOD.value)] -= 100
-            self.resources[int(Resources.GOLD.value)] -= 60
-            self.player.units.append(Cavalry(self.location,self.player))
 
     def draw(self, screen) -> None:
         screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
         screen.addstr(self.location[0]+5, self.location[1] + 2, "  TH  ", curses.color_pair(PLAYER_COLOR))
         screen.addstr(self.location[0]+6, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
 
+    
+
 class House(Structure):
     pass
+
+class Barracks(Structure):
+    def __init__(self, location, player) -> None:
+        self.size = (2, 4)
+        player.loses_resources(BARRACKS_COST)
+        super().__init__(location, player)
+
+    @staticmethod
+    def get_cost():
+        return BARRACKS_COST
+
+    def create_soldier(self):
+        if self.player.can_afford(SOLDIER_COST):
+            self.player.loses_resources(SOLDIER_COST)
+            self.player.units.append(Soldier(self.location,self.player))
+        else:
+            self.player.debug = read_cost("Soldier", SOLDIER_COST)
+    
+    def create_archer(self):
+        if self.player.can_afford(ARCHER_COST):
+            self.player.loses_resources(ARCHER_COST)
+            self.player.units.append(Archer(self.location,self.player))
+        else:
+            self.player.debug = read_cost("Archer", ARCHER_COST)
+    
+    def create_cavalry(self):
+        if self.player.can_afford(CAVALRY_COST):
+            self.player.loses_resources(CAVALRY_COST)
+            self.player.units.append(Cavalry(self.location,self.player))
+        else:
+            self.player.debug = read_cost("Cavalry", CAVALRY_COST)
+
+    def draw(self, screen):
+        screen.addstr(self.location[0]+4, self.location[1] + 2, "Barr", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "acks", curses.color_pair(PLAYER_COLOR))
+
 
 class Collector(Structure):
     def __init__(self, location, player) -> None:
@@ -97,8 +122,8 @@ class Collector(Structure):
 
 class Mine(Collector):
     @staticmethod
-    def get_next_resource():
-        return Resources.GOLD
+    def get_next_state():
+        return VillagerStates.GATHER, Resources.GOLD
 
     def can_receive(self, resource):
         return resource in [Resources.GOLD, Resources.STONE]
@@ -110,8 +135,8 @@ class Mine(Collector):
 
 class Mill(Collector):
     @staticmethod
-    def get_next_resource():
-        return Resources.FOOD
+    def get_next_state():
+        return VillagerStates.GATHER, Resources.FOOD
 
     def can_receive(self, resource):
         return resource in [Resources.FOOD]
@@ -122,8 +147,8 @@ class Mill(Collector):
 
 class LumberCamp(Collector):
     @staticmethod
-    def get_next_resource():
-        return Resources.WOOD
+    def get_next_state():
+        return VillagerStates.GATHER, Resources.WOOD
 
     def can_receive(self, resource):
         return resource in [Resources.WOOD]

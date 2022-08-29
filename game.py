@@ -1,7 +1,7 @@
 from typing import List
 from map import Map
 from player import NPC, Player
-from structure import Build_Site, Town_Hall, Mine, Mill, LumberCamp
+from structure import Build_Site, Town_Hall, Mine, Mill, LumberCamp, Barracks
 from unit import Soldier, Villager, Cavalry
 from copy import deepcopy
 import time
@@ -17,22 +17,24 @@ class CommandLine:
         self.screen = screen
         self.player = player
         self.prev_command = ""
-        self.unit_lookup = {"archer": self.player.archers, 
-                            "soldier": self.player.soldiers,
-                            "cavalry": self.player.cavalry}
 
     def state_lookup(self, word: str):
         return {"berry": Resources.FOOD, "food": Resources.FOOD,
                 "gold": Resources.GOLD, "wood": Resources.WOOD,
                 "stone": Resources.STONE, "mine": Mine, "mill": Mill, 
-                "lumbercamp": LumberCamp}.get(word, None)
+                "lumbercamp": LumberCamp, "barracks": Barracks}.get(word, None)
 
     def interpret_command(self):
         self.prev_command = self.command
         words = self.command.split(" ")
         file = words[0].split("/")
+        
+        unit_lookup = {"archer": self.player.archers, 
+                            "soldier": self.player.soldiers,
+                            "cavalry": self.player.cavalry}
         try:
             if "villager" == file[0][:8]:
+                
                 try:
                     ind = int(file[0][8:])
                     vil = self.player.villagers[ind]
@@ -48,21 +50,24 @@ class CommandLine:
                         return
                 if file[1] == "build":
                     state = self.state_lookup(words[1])
+                    
                     if state != None:
                         try:
                             y,x = int(words[2], 16), int(words[3], 16)
                         except ValueError:
                             self.player.debug = f"Invalid coordinates! (Remember row first)"
                             return
-                    if self.player.can_afford(state.get_cost()):
+                    cost = state.get_cost()
+                    if self.player.can_afford(cost):
                         vil.set_desired_square((y,x))
                         vil.set_state(VillagerStates.BUILD, state)
                     else:
-                        self.player.debug = read_cost("building", COLLECTOR_COST)
+                        self.player.debug = read_cost("building", cost)
                     return
-            for unit_type, unit_container in self.unit_lookup.items():
+            for unit_type, unit_container in unit_lookup.items():
                 if unit_type == file[0][:len(unit_type)]:
                     try:
+                        self.player.debug = len(unit_container)
                         ind = int(file[0][len(unit_type):])
                         chosen_unit = unit_container[ind]
                     except:
@@ -77,6 +82,7 @@ class CommandLine:
                                         u.set_attacking(Units.CAVALRY)
                                     if words[1] == "villager":
                                         u.set_attacking(Units.VILLAGER)
+                                return
                         else:
                             self.player.debug = f"Error! {file[0]} is not a valid {unit_type}"
                             return
@@ -101,12 +107,18 @@ class CommandLine:
                             chosen_unit.set_attacking(Units.VILLAGER)
             if self.command == "townhall/create villager":
                 self.player.structures[0].create_villager()
+            elif self.command == "barracks/create soldier":
+                self.player.get_barracks().create_soldier()
+            elif self.command == "barracks/create archer":
+                self.player.get_barracks().create_archer()
+            elif self.command == "barracks/create cavalry":
+                self.player.get_barracks().create_cavalry()
             elif self.command == "townhall/create soldier":
-                self.player.structures[0].create_soldier()
+                self.player.debug = "You build those at a barracks."
             elif self.command == "townhall/create archer":
-                self.player.structures[0].create_archer()
+                self.player.debug = "You build those at a barracks."
             elif self.command == "townhall/create cavalry":
-                self.player.structures[0].create_cavalry()
+                self.player.debug = "You build those at a barracks."
         except:
             self.player.debug = "I don't understand."
 
@@ -218,7 +230,6 @@ class Game():
         if self.time > 100000:
             self.enemy.set_attacks()
 
-        # self.player.debug = f"{[u.get_index() for u in self.player.units if u not in self.player.villagers]}"
         
         self.screen.refresh()
 

@@ -33,7 +33,7 @@ class Tile:
 class Map():
     def __init__(self) -> None:
         self.grid : dict[Tile] = {(y,x) : Tile((y,x), self) 
-            for y,x in itertools.product(range(40), range(140))}
+            for y,x in itertools.product(range(MAPHEIGHT), range(MAPWIDTH))}
 
         #TODO: Make a bit more OO.
         for locations,resource in [(BERRY_LOCATIONS, Berry), 

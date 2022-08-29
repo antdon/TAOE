@@ -1,6 +1,6 @@
 # Team Thoughts
 ## Potential Game Name Ideas
-    - Chieftian
+    - Chieftain
     - Terminal of Empires
     - Clash of consoles
     - semi-colonialism

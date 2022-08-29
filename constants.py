@@ -13,9 +13,9 @@ ENEMY_COLOR = 7
 curses.COLOR_DARKGREEN = 8
 
 
-SCREENWIDTH = 80
-SCREENHEIGHT = 80
-COMMANDLINE_Y = 45
+MAPWIDTH = 140
+MAPHEIGHT = 40
+COMMANDLINE_Y = MAPHEIGHT + 5
 
 VILLAGER_STATS = {
     "health": 10,
@@ -66,14 +66,18 @@ def read_cost(name, cost):
     s = f"A {name} costs "
     cost_list = list(cost.items())
     if len(cost_list) == 1:
-        s += cost_list[0][0], cost_list[0][1]
+        s += f"{cost_list[0][1]} {resource_names[cost_list[0][0]]}"
     else:
-        s += f'{", ".join(f"{resource_names[k]} {v}" for k,v in cost_list[:-1])} and {resource_names[cost_list[-1][0]]} {cost_list[-1][1]}'
+        s += f'{", ".join(f"{v} {resource_names[k]}" for k,v in cost_list[:-1])} and {cost_list[-1][1]} {resource_names[cost_list[-1][0]]}'
     s += " to build."
     return s
 
 VILLAGER_COST = {Resources.FOOD: 40}
 COLLECTOR_COST =  {Resources.WOOD: 60, Resources.STONE: 25}
+BARRACKS_COST = {Resources.WOOD: 150}
+SOLDIER_COST = {Resources.FOOD: 60, Resources.GOLD: 40}
+ARCHER_COST = {Resources.FOOD: 40, Resources.WOOD: 25}
+CAVALRY_COST = {Resources.FOOD: 100, Resources.GOLD: 60}
 
 #TODO: This is actually just the first map...
 BERRY_LOCATIONS = [(7,4,2,9), (3,54,5,6)]
