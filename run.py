@@ -1,17 +1,14 @@
-import resource
+from constants import *
 from player import Player
 from map import Map
 from game import *
-from constants import *
 from incidental import *
+from commandline import *
 
 def main(stdscr):
     # Clear screen
     stdscr.clear()
-    map = Map()
-    player = Player()
-    commander = CommandLine(stdscr, player)
-    game = Game(map, player, stdscr, commander)
+    game = Game(stdscr, is_npc_game = False)
     curses.init_color(8,0,250,0)
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(ENEMY_COLOR, curses.COLOR_BLACK, curses.COLOR_YELLOW)

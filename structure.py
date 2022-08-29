@@ -7,6 +7,7 @@ class Structure():
         self.location = location
         self.player = player
         self.player.structures.append(self)
+        self.player.game.all_structures.append(self)
 
     def get_neighbours(self):
         """ 
@@ -64,9 +65,9 @@ class Town_Hall(Structure):
 
 
     def draw(self, screen) -> None:
-        screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "  TH  ", curses.color_pair(PLAYER_COLOR))
-        screen.addstr(self.location[0]+6, self.location[1] + 2, "      ", curses.color_pair(PLAYER_COLOR))
+        screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", self.player.color)
+        screen.addstr(self.location[0]+5, self.location[1] + 2, "  TH  ", self.player.color)
+        screen.addstr(self.location[0]+6, self.location[1] + 2, "      ", self.player.color)
 
     
 

@@ -71,7 +71,6 @@ class Villager(Unit):
         self.state_target = None
         self.gathering_resource = None
         self.gather_square = None
-        self.desired_resource = None
         self.target_incidental = None
         self.debug_info = ""
         self.player.villagers.append(self)
@@ -86,7 +85,6 @@ class Villager(Unit):
             self.player.game.grid.grid[self.gather_square].users -= {self}
         self.gather_square = square
         self.target_incidental = incidental
-        self.desired_resource = resource
         self.player.game.grid.grid[square].users |= {self}
         self.player.debug = f"{square} {incidental} {resource}"
 
@@ -133,10 +131,13 @@ class Villager(Unit):
         return None
 
     def get_target_square(self):
+        self.debug += str(self.state_target)
         if self.state_action == VillagerStates.BUILD:
             return self.desired_square
+        self.debug += str(self.state_target)
+        # self.debug = "a"
         if self.state_action == VillagerStates.GATHER and self.needs_delivery(
-            self.desired_resource):
+            self.state_target):
             return self.nearest_deliverable(self.carried_resource())
         else:
             return self.gather_square
@@ -160,14 +161,16 @@ class Villager(Unit):
                     self.set_state(*Building.get_next_state())
                 else:
                     self.player.debug = "Not enough resources to build building."
-                    self.set_state(VillagerStates.IDLE, None)    
+                    self.set_state(VillagerStates.IDLE, None)
+        # self.debug = "b"
         if self.location == self.gather_square and not self.needs_delivery(
-                                self.desired_resource):
+                                self.state_target):
             self.gather(self.target_incidental, delta_time)
         else:
             self.time_on_task += delta_time
             move_steps = self.time_on_task // self.move_speed
             self.time_on_task %= self.move_speed
+            self.debug = str(self.state_target)
             target_location = self.get_target_square()
             for s in range(move_steps):
                 self.step(target_location)
@@ -183,7 +186,7 @@ class Villager(Unit):
 
     def needs_delivery(self, resource: Resources):
         if resource == None:
-            exit(f"{resource}")
+            exit(f"{self.debug}")
         return (any([x for i,x in enumerate(self.resources) if i != int(resource.value)]) 
             or self.capacity_reached())
 
@@ -198,7 +201,7 @@ class Villager(Unit):
         target_incidental = None
         for incidental in game.incidentals:
             if resource in incidental.resources:
-                for square in game.map.grid[incidental.location].get_neighbours():
+                for square in game.grid.grid[incidental.location].get_neighbours():
                     curr_dist = (len(square.users), square.get_dist(self.location))
                     if curr_dist < dist:
                         nearest = square

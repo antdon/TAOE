@@ -3,11 +3,11 @@ import itertools
 from constants import *
 from incidental import Berry, Rocks, Tree, Vein
 
-class Map:
+class TileGrid:
     pass
 
 class Tile:
-    def __init__(self, coordinate: tuple[int, int], tilemap: Map) -> None:
+    def __init__(self, coordinate: tuple[int, int], tilemap: TileGrid) -> None:
         self.coordinate = coordinate
         self.tilemap = tilemap
         self.content = None
@@ -31,7 +31,7 @@ class Tile:
 
 
 class TileGrid():
-    def __init__(self) -> None:
+    def __init__(self, symmetry) -> None:
         self.grid : dict[Tile] = {(y,x) : Tile((y,x), self) 
             for y,x in itertools.product(range(MAPHEIGHT), range(MAPWIDTH))}
 
@@ -43,6 +43,8 @@ class TileGrid():
                 for i,j in itertools.product(range(left,left+width), 
                                             range(top, top+height)):
                     self.grid[(i, j)].content = resource((i,j))
+                    if symmetry:
+                        self.grid[(MAPHEIGHT - i, MAPWIDTH - j)].content = resource((MAPHEIGHT - i,MAPWIDTH - j))
 
 
 
