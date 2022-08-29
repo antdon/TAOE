@@ -1,4 +1,4 @@
-from typing import List 
+from typing import List, Tuple
 import itertools
 from constants import *
 from incidental import Berry, Rocks, Tree, Vein
@@ -7,7 +7,7 @@ class Map:
     pass
 
 class Tile:
-    def __init__(self, coordinate: tuple[int, int], tilemap: Map) -> None:
+    def __init__(self, coordinate: Tuple[int, int], tilemap: Map) -> None:
         self.coordinate = coordinate
         self.tilemap = tilemap
         self.content = None

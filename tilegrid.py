@@ -1,4 +1,4 @@
-from typing import List 
+from typing import List, Tuple
 import itertools
 from constants import *
 from incidental import Berry, Rocks, Tree, Vein
@@ -7,7 +7,7 @@ class TileGrid:
     pass
 
 class Tile:
-    def __init__(self, coordinate: tuple[int, int], tilemap: TileGrid) -> None:
+    def __init__(self, coordinate: Tuple[int, int], tilemap: TileGrid) -> None:
         self.coordinate = coordinate
         self.tilemap = tilemap
         self.content = None
@@ -26,7 +26,7 @@ class Tile:
 
         return squares
 
-    def get_dist(self, coord: tuple[int, int]) -> int:
+    def get_dist(self, coord: Tuple[int, int]) -> int:
         return max(abs(self.coordinate[0] - coord[0]), abs(self.coordinate[1] - coord[1]))
 
 
