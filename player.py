@@ -43,7 +43,8 @@ class Player(Chieftain):
                 return structure
 
     def get_updates(self, time):
-        if (k:=self.screen.getch()) != -1:
+        k = self.screen.getch()
+        if k != -1:
             self.commander.update(k)
 
         self.screen.addstr(0,0, f"Wood: {self.structures[0].resources[int(Resources.WOOD.value)]}    " + 
