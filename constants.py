@@ -3,7 +3,8 @@ import curses
 from enum import Enum
 import itertools
 
-
+curses.initscr()
+curses.start_color()
 PLAYER_COLOR = 1
 TREE_COLOR = 2
 BLANK_COLOR = 3

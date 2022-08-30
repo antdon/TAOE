@@ -1,39 +1,69 @@
 from constants import *
 from random import choice
 
-class Incidental():
+class Incidental:
+    name = "Incidental"
+
     def __init__(self, location) -> None:
         self.location = location
         self.owner = None
 
-    def draw(self, screen):
-        screen.addstr(self.location[0] + 4, self.location[1] + 2, self.rep, self.color)
+    @classmethod
+    def get_rep(cls, location):
+        return " "
+
+    @classmethod
+    def draw(cls, screen, location, color):
+        screen.addstr(location[0] + 4, location[1] + 2, cls.get_rep(location), color)
+
+    def draw_info(self):
+        return {"type": self.name, "location": self.location, 
+                "color": self.color}
 
 class Tree(Incidental):
-    def __init__(self, location, wood_drop:int = 500) -> None:
+    color = curses.color_pair(TREE_COLOR)
+    name = "Tree"
+
+    def __init__(self, location) -> None:
         super().__init__(location)
-        wood_drop = wood_drop
-        self.color = curses.color_pair(TREE_COLOR)
         self.resources = [Resources.WOOD]
-        self.rep = " "
+
+    @classmethod
+    def get_rep(cls, location):
+        return " "
 
 class Vein(Incidental):
+    color = curses.color_pair(VEIN_COLOR)
+    name = "Vein"
+
     def __init__(self, location) -> None:
         super().__init__(location)
-        self.color = curses.color_pair(VEIN_COLOR)
         self.resources = [Resources.GOLD]
-        self.rep = "|"
+
+    @classmethod
+    def get_rep(cls, location):
+        return "|"
 
 class Rocks(Incidental):
+    color = curses.color_pair(ROCK_COLOR)
+    name = "Rocks"
+
     def __init__(self, location) -> None:
         super().__init__(location)
-        self.color = curses.color_pair(ROCK_COLOR)
         self.resources = [Resources.STONE]
-        self.rep = "-"
+    
+    @classmethod
+    def get_rep(cls, location):
+        return "-"
 
 class Berry(Incidental):
+    color = curses.color_pair(BERRY_COLOR)
+    name = "Berry"
+
     def __init__(self, location) -> None:
         super().__init__(location)
-        self.color = curses.color_pair(BERRY_COLOR)
         self.resources = [Resources.FOOD]
-        self.rep = choice("⋮⁖∴:")
+
+    @classmethod
+    def get_rep(cls, location):
+        return "⋮⁖∴:"[(location[0]+location[1]) % 4]

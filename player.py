@@ -1,6 +1,6 @@
 from typing import List
 from structure import Structure, Town_Hall, Barracks
-from unit import Unit, Villager, Archer, Soldier, Cavalry 
+from unit import Unit, Villager, Archer, Soldier, Cavalry
 from constants import *
 from commandline import *
 from random import choice, randrange
@@ -28,14 +28,21 @@ class Chieftain():
         
 
 class Player(Chieftain):
-    def __init__(self, stdscr, game, color) -> None:
+    def __init__(self, stdscr, game, color, is_remote= False) -> None:
         super().__init__()
         self.debug = ""
         self.game = game
-        self.commander = CommandLine(stdscr, self)
-        self.screen = stdscr
+        if stdscr == None:
+            self.screen = NullScreen(self)
+        else:
+            self.screen = stdscr
+        
         self.screen.nodelay(1)
         self.color = curses.color_pair(color)
+        if is_remote:
+            self.commander = RemoteCommander(stdscr, self)
+        else:
+            self.commander = CommandLine(stdscr, self)
 
     def get_barracks(self):
         for structure in self.structures:
@@ -47,7 +54,8 @@ class Player(Chieftain):
         if k != -1:
             self.commander.update(k)
 
-        self.screen.addstr(0,0, f"Wood: {self.structures[0].resources[int(Resources.WOOD.value)]}    " + 
+        self.screen.addstr(0,0, 
+        f"Wood: {self.structures[0].resources[int(Resources.WOOD.value)]}    " + 
         f"Food: {self.structures[0].resources[int(Resources.FOOD.value)]}      " +
         f"Gold: {self.structures[0].resources[int(Resources.GOLD.value)]}      " + 
         f"Stone: {self.structures[0].resources[int(Resources.STONE.value)]}      " +
