@@ -27,8 +27,8 @@ class Game:
             self.players[0].units.append(Villager((23, 16), self.players[0]))
             Town_Hall((20, 10), self.players[0])
         else:
-            self.players = [Player(screen, self, PLAYER_COLOR)]
-            self.players.append(Player(None, self, ENEMY_COLOR, is_remote = True))
+            self.players = [Player(screen, self, PLAYER_COLOR, 0)]
+            self.players.append(Player(None, self, ENEMY_COLOR, 1, is_remote = True))
             self.players[0].units.append(Villager((23, 16), self.players[0]))
             Town_Hall((20, 10), self.players[0])
             self.players[1].units.append(Villager((MAPHEIGHT-23-1, MAPWIDTH-17), self.players[1]))
@@ -56,11 +56,19 @@ class Game:
 
         self.target_index = 0
 
-    # def switch_players(self):
-    #     if not self.is_npc_game:
-    #         self.player_pointer = 1 - self.player_pointer
-    #         self.players[self.player_pointer].screen = self.screen
-    #         self.players[1-self.player_pointer].screen = NullScreen()
+    def get_state(self):
+        b = bytearray()
+        for s in self.all_structures:
+            b += s.draw_info()
+        for i in self.incidentals:
+            b += i.draw_info()
+        for u in self.all_units:
+            b += u.draw_info()
+        return b
+        # return json.dumps({
+        #     "structures": [s.draw_info() for s in self.all_structures],
+        #     "incidentals": [i.draw_info() for i in self.incidentals],
+        #     "units": [u.draw_info() for u in self.all_units]})
 
     def update(self) -> None:
         """
@@ -72,16 +80,12 @@ class Game:
 
         for player in self.players:
             player.get_updates(self.time)
-
         for unit in self.all_units:
             unit.update_move(delta_time)
 
         self.all_units = [u for u in self.all_units if not u.dead]
 
-        self.screen.draw_state(json.dumps({
-            "structures": [s.draw_info() for s in self.all_structures],
-            "incidentals": [i.draw_info() for i in self.incidentals],
-            "units": [u.draw_info() for u in self.all_units]}))
+        self.screen.draw_state(self.get_state())
 
         for unit in self.all_units:
             if unit.state_action == ArmyStates.IDLE:

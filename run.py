@@ -29,12 +29,12 @@ def main(stdscr):
 
 
 if __name__ == "__main__":
-    # try:
-    wrapper(main)
-    # except curses.error as e:
-    #     print("Had error...", type(e), e)
-    #     print("If this happens on startup, you might need to resize the terminal.")
-    #     print("else delete these lines in tester.py and get proper printout")
+    try:
+        wrapper(main)
+    except curses.error as e:
+        print("Had error...", type(e), e)
+        print("If this happens on startup, you might need to resize the terminal.")
+        print("else delete these lines in tester.py and get proper printout")
 
 
 

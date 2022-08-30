@@ -28,12 +28,13 @@ class Chieftain():
         
 
 class Player(Chieftain):
-    def __init__(self, stdscr, game, color, is_remote= False) -> None:
+    def __init__(self, stdscr, game, color, number, is_remote= False) -> None:
         super().__init__()
         self.debug = ""
         self.game = game
+        self.number = number
         if stdscr == None:
-            self.screen = NullScreen(self)
+            self.screen = NullScreen(game)
         else:
             self.screen = stdscr
         

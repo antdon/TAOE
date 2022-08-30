@@ -56,6 +56,10 @@ class Buildings(Enum):
     TOWNHALL = 0
     MINE = 1
     MILL = 2
+    LUMBERCAMP = 3
+    BARRACKS = 4
+    QUARRY = 5
+    HOUSE = 6
 
 class Units(Enum):
     VILLAGER = 0

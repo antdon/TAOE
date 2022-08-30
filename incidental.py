@@ -13,16 +13,22 @@ class Incidental:
         return " "
 
     @classmethod
-    def draw(cls, screen, location, color):
-        screen.addstr(location[0] + 4, location[1] + 2, cls.get_rep(location), color)
+    def draw(cls, screen, location):
+        screen.addstr(location[0] + 4, location[1] + 2, cls.get_rep(location), cls.color)
 
     def draw_info(self):
-        return {"type": self.name, "location": self.location, 
-                "color": self.color}
+        b = bytearray(b"I")
+        b.append(int(self.resource.value) + 1)
+        b.append(self.location[0]+1)
+        b.append(self.location[1]+1)
+        b += b"...."
+        return b
+        # return {"type": self.name, "location": self.location, 
+        #         "color": self.color}
 
 class Tree(Incidental):
     color = curses.color_pair(TREE_COLOR)
-    name = "Tree"
+    resource = Resources.WOOD
 
     def __init__(self, location) -> None:
         super().__init__(location)
@@ -34,7 +40,7 @@ class Tree(Incidental):
 
 class Vein(Incidental):
     color = curses.color_pair(VEIN_COLOR)
-    name = "Vein"
+    resource = Resources.GOLD
 
     def __init__(self, location) -> None:
         super().__init__(location)
@@ -46,7 +52,7 @@ class Vein(Incidental):
 
 class Rocks(Incidental):
     color = curses.color_pair(ROCK_COLOR)
-    name = "Rocks"
+    resource = Resources.STONE
 
     def __init__(self, location) -> None:
         super().__init__(location)
@@ -58,7 +64,7 @@ class Rocks(Incidental):
 
 class Berry(Incidental):
     color = curses.color_pair(BERRY_COLOR)
-    name = "Berry"
+    resource = Resources.FOOD
 
     def __init__(self, location) -> None:
         super().__init__(location)

@@ -6,7 +6,7 @@ from random import random, randrange
 from constants import *
 
 class Unit:
-    name = "Unit"
+    enum_value = -1
 
     def __init__(self, location, player, icon) -> None:
         self.prev_location = location
@@ -55,12 +55,21 @@ class Unit:
         screen.addstr(location[0] + 4, location[1] + 2, icon, color)
     
     def draw_info(self):
-        return {"type": self.name, "prev_location": self.prev_location, 
-            "location": self.location, "icon": self.icon, 
-            "color": self.player.color}
+        b = bytearray(b"U")
+        b.append(int(self.enum_value.value) + 1)
+        b.append(self.prev_location[0]+1)
+        b.append(self.prev_location[1]+1)
+        b.append(self.location[0]+1)
+        b.append(self.location[1]+1)
+        b += self.icon.encode()
+        b.append(self.player.number + 1)
+        return b
+        # return {"type": self.enum_value, "prev_location": self.prev_location, 
+        #     "location": self.location, "icon": self.icon, 
+        #     "color": self.player.color}
 
 class Villager(Unit):
-    name = "Villager"
+    enum_value = Units.VILLAGER
 
     def __init__(self, location, player, capacity:int = None, 
                 move_speed: int = 500) -> None:
@@ -239,7 +248,7 @@ class Villager(Unit):
         self.player.villagers = [u for u in self.player.villagers if u != self]
         
 class Army(Unit):
-    name = "Army"
+    enum_value = -1
     def __init__(self, location, player, icon):
         super().__init__(location, player, icon)
         self.state_action = ArmyStates.IDLE
@@ -350,7 +359,7 @@ class Army(Unit):
         return killed
 
 class Soldier(Army):
-    name = "Soldier"
+    enum_value = Units.SOLDIER
 
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "S")
@@ -371,7 +380,7 @@ class Soldier(Army):
         self.player.soldiers = [u for u in self.player.soldiers if u != self]
 
 class Archer(Army):
-    name = "Archer"
+    enum_value = Units.ARCHER
 
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "A")
@@ -393,7 +402,7 @@ class Archer(Army):
         self.player.archers = [u for u in self.player.archers if u != self]
 
 class Cavalry(Army):
-    name = "Cavalry"
+    enum_value = Units.CAVALRY
 
     def __init__(self, location, player, level: int =1) -> None:
         super().__init__(location, player, "C")

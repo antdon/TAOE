@@ -3,7 +3,6 @@ from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
 
 class Structure:
-    name = "Structure"
 
     def __init__(self, location, player) -> None:
         self.location = location
@@ -39,8 +38,15 @@ class Structure:
         screen.addstr(location[0]+5, location[1] + 2, "ding", color)
 
     def draw_info(self):
-        return {"type": self.name, "location": self.location, 
-                "color": self.player.color}
+        b = bytearray(b'S')
+        b.append(int(self.enum_value.value) + 1)
+        b.append(self.location[0]+1)
+        b.append(self.location[1]+1)
+        b.append(self.player.number + 1)
+        b += b"..."
+        return b
+        # return {"type": self.enum_value, "location": self.location, 
+        #         "color": self.player.color}
 
 
 class Town_Hall(Structure):
@@ -50,7 +56,7 @@ class Town_Hall(Structure):
     a limited capacity of that resource. The Town Hall can store a bunch of 
     resources and can store infinite of all of them
     """
-    name = "Town_Hall"
+    enum_value = Buildings.TOWNHALL
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
@@ -78,10 +84,10 @@ class Town_Hall(Structure):
     
 
 class House(Structure):
-    name = "House"
+    enum_value = Buildings.HOUSE
 
 class Barracks(Structure):
-    name = "Barracks"
+    enum_value = Buildings.BARRACKS
 
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
@@ -120,7 +126,6 @@ class Barracks(Structure):
 
 
 class Collector(Structure):
-    name = "Collector"
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
         player.loses_resources(COLLECTOR_COST)
@@ -132,7 +137,7 @@ class Collector(Structure):
 
 
 class Mine(Collector):
-    name = "Mine"
+    enum_value = Buildings.MINE
 
     @staticmethod
     def get_next_state():
@@ -148,7 +153,7 @@ class Mine(Collector):
 
 
 class Mill(Collector):
-    name = "Mill"
+    enum_value = Buildings.MILL
 
     @staticmethod
     def get_next_state():
@@ -163,7 +168,7 @@ class Mill(Collector):
         screen.addstr(location[0]+5, location[1] + 2, " LL ", color)
 
 class LumberCamp(Collector):
-    name = "LumberCamp"
+    enum_value = Buildings.LUMBERCAMP
     
     @staticmethod
     def get_next_state():
@@ -179,8 +184,6 @@ class LumberCamp(Collector):
         
 
 class Build_Site(Structure):
-    name = "Build_Site"
-    
     def __init__(self, location, time_to_complete: int, building: Structure) -> None:
         """
         make sure the building location is the same as the building site 
@@ -189,7 +192,20 @@ class Build_Site(Structure):
         self.time_to_complete = time_to_complete
         self.building = building
 
-            
+class Quarry(Collector):
+    enum_value = Buildings.LUMBERCAMP
+
+    @staticmethod
+    def get_next_state():
+        return VillagerStates.GATHER, Resources.STONE
+
+    def can_receive(self, resource):
+        return resource in [Resources.STONE]
+
+    @staticmethod
+    def draw(screen, location, color):
+        screen.addstr(location[0]+4, location[1] + 2, " Qua", color)
+        screen.addstr(location[0]+5, location[1] + 2, " rry", color)
 
 
 

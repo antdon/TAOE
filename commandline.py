@@ -2,6 +2,7 @@ from constants import *
 import threading
 import socket
 from structure import LumberCamp, Mine, Mill, Barracks
+import time
 
 class CommandLine:
     def __init__(self, screen, player):
@@ -177,26 +178,33 @@ class RemoteCommander(CommandLine):
         super().update(10)
 
 class NullScreen:
-    def __init__(self, player):
+    def __init__(self, game):
+        self.game = game
         serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         serversocket.bind(('localhost', 8089))
         serversocket.listen()
         self.serversocket = serversocket
-        self.player = player
-        x = threading.Thread(target=self.listen, daemon=True)
+        self.connection = None
+        x = threading.Thread(target=self.listen)#, daemon=True)
         x.start()
+        y = threading.Thread(target=self.send_state)
+        y.start()
         self.commands = []
+
+    def send_state(self):
+        while 1:
+            if self.connection:
+                self.connection.send(self.game.get_state())
+            
 
     def listen(self):
         self.connection, address = self.serversocket.accept()
         while 1:
             try:
                 buf = self.connection.recv(128)
-                self.connection.send(b"asdf")
                 if buf:
                     self.commands.append(buf.decode())
-                    self.player.game.players[0].debug = self.commands
             except BlockingIOError:
                 pass
 
