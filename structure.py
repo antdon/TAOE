@@ -2,7 +2,8 @@ from typing import List, Tuple
 from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
 
-class Structure():
+class Structure:
+
     def __init__(self, location, player) -> None:
         self.location = location
         self.player = player
@@ -31,12 +32,21 @@ class Structure():
     def can_receive(self, resource):
         return resource in []
 
-    def update(self) -> None:
-        pass
+    @staticmethod
+    def draw(screen, location, color):
+        screen.addstr(location[0]+4, location[1] + 2, "Buil", color)
+        screen.addstr(location[0]+5, location[1] + 2, "ding", color)
 
-    def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, "Buil", self.player.color)
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "ding", self.player.color)
+    def draw_info(self):
+        b = bytearray(b'S')
+        b.append(int(self.enum_value.value) + 1)
+        b.append(self.location[0]+1)
+        b.append(self.location[1]+1)
+        b.append(self.player.number + 1)
+        b += b"..."
+        return b
+        # return {"type": self.enum_value, "location": self.location, 
+        #         "color": self.player.color}
 
 
 class Town_Hall(Structure):
@@ -46,6 +56,8 @@ class Town_Hall(Structure):
     a limited capacity of that resource. The Town Hall can store a bunch of 
     resources and can store infinite of all of them
     """
+    enum_value = Buildings.TOWNHALL
+
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
         self.size = (3, 6)
@@ -63,18 +75,20 @@ class Town_Hall(Structure):
             self.resources[int(Resources.FOOD.value)] -= VILLAGER_COST[Resources.FOOD]
             self.player.units.append(Villager(self.location, self.player))
 
-
-    def draw(self, screen) -> None:
-        screen.addstr(self.location[0]+4, self.location[1] + 2, "      ", self.player.color)
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "  TH  ", self.player.color)
-        screen.addstr(self.location[0]+6, self.location[1] + 2, "      ", self.player.color)
+    @staticmethod
+    def draw(screen, location, color) -> None:
+        screen.addstr(location[0]+4, location[1] + 2, "      ", color)
+        screen.addstr(location[0]+5, location[1] + 2, "  TH  ", color)
+        screen.addstr(location[0]+6, location[1] + 2, "      ", color)
 
     
 
 class House(Structure):
-    pass
+    enum_value = Buildings.HOUSE
 
 class Barracks(Structure):
+    enum_value = Buildings.BARRACKS
+
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
         player.loses_resources(BARRACKS_COST)
@@ -105,9 +119,10 @@ class Barracks(Structure):
         else:
             self.player.debug = read_cost("Cavalry", CAVALRY_COST)
 
-    def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, "Barr", self.player.color)
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "acks", self.player.color)
+    @staticmethod
+    def draw(screen, location, color):
+        screen.addstr(location[0]+4, location[1] + 2, "Barr", color)
+        screen.addstr(location[0]+5, location[1] + 2, "acks", color)
 
 
 class Collector(Structure):
@@ -122,6 +137,8 @@ class Collector(Structure):
 
 
 class Mine(Collector):
+    enum_value = Buildings.MINE
+
     @staticmethod
     def get_next_state():
         return VillagerStates.GATHER, Resources.GOLD
@@ -129,12 +146,15 @@ class Mine(Collector):
     def can_receive(self, resource):
         return resource in [Resources.GOLD, Resources.STONE]
 
-    def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", self.player.color)
-        screen.addstr(self.location[0]+5, self.location[1] + 2, " NE ", self.player.color)
+    @staticmethod
+    def draw(screen, location, color):
+        screen.addstr(location[0]+4, location[1] + 2, " MI ", color)
+        screen.addstr(location[0]+5, location[1] + 2, " NE ", color)
 
 
 class Mill(Collector):
+    enum_value = Buildings.MILL
+
     @staticmethod
     def get_next_state():
         return VillagerStates.GATHER, Resources.FOOD
@@ -142,11 +162,14 @@ class Mill(Collector):
     def can_receive(self, resource):
         return resource in [Resources.FOOD]
 
-    def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, " MI ", self.player.color)
-        screen.addstr(self.location[0]+5, self.location[1] + 2, " LL ", self.player.color)
+    @staticmethod
+    def draw(screen, location, color):
+        screen.addstr(location[0]+4, location[1] + 2, " MI ", color)
+        screen.addstr(location[0]+5, location[1] + 2, " LL ", color)
 
 class LumberCamp(Collector):
+    enum_value = Buildings.LUMBERCAMP
+    
     @staticmethod
     def get_next_state():
         return VillagerStates.GATHER, Resources.WOOD
@@ -154,9 +177,10 @@ class LumberCamp(Collector):
     def can_receive(self, resource):
         return resource in [Resources.WOOD]
 
-    def draw(self, screen):
-        screen.addstr(self.location[0]+4, self.location[1] + 2, " Lum", self.player.color)
-        screen.addstr(self.location[0]+5, self.location[1] + 2, "Camp", self.player.color)
+    @staticmethod
+    def draw(screen, location, color):
+        screen.addstr(location[0]+4, location[1] + 2, " Lum", color)
+        screen.addstr(location[0]+5, location[1] + 2, "Camp", color)
         
 
 class Build_Site(Structure):
@@ -168,7 +192,20 @@ class Build_Site(Structure):
         self.time_to_complete = time_to_complete
         self.building = building
 
-            
+class Quarry(Collector):
+    enum_value = Buildings.LUMBERCAMP
+
+    @staticmethod
+    def get_next_state():
+        return VillagerStates.GATHER, Resources.STONE
+
+    def can_receive(self, resource):
+        return resource in [Resources.STONE]
+
+    @staticmethod
+    def draw(screen, location, color):
+        screen.addstr(location[0]+4, location[1] + 2, " Qua", color)
+        screen.addstr(location[0]+5, location[1] + 2, " rry", color)
 
 
 

@@ -1,5 +1,8 @@
 from constants import *
+import threading
+import socket
 from structure import LumberCamp, Mine, Mill, Barracks
+import time
 
 class CommandLine:
     def __init__(self, screen, player):
@@ -7,7 +10,11 @@ class CommandLine:
         self.screen = screen
         self.player = player
         self.command_history = []
+        self.opponent_boxes = []
         self.history_pointer = 0
+
+    def set_opponent_boxes(self, opponent_boxes):
+        self.opponent_boxes = opponent_boxes
 
     def state_lookup(self, word: str):
         return {"berry": Resources.FOOD, "food": Resources.FOOD,
@@ -22,9 +29,7 @@ class CommandLine:
         unit_lookup = {"archer": self.player.archers, 
                             "soldier": self.player.soldiers,
                             "cavalry": self.player.cavalry}
-        # try:
         if "villager" == file[0][:8]:
-            
             try:
                 ind = int(file[0][8:])
                 vil = self.player.villagers[ind]
@@ -63,6 +68,7 @@ class CommandLine:
                     if file[0][len(unit_type):] == "s":
                         if file[1] == "attack":
                             for u in unit_container:
+                                # TODO: Delint
                                 if words[1] == "soldier":
                                     u.set_attacking(Units.SOLDIER)
                                 if words[1] == "archer":
@@ -87,31 +93,46 @@ class CommandLine:
                     chosen_unit.state_target = None
                     chosen_unit.set_desired_square((y,x))
                     return
+                # TODO: Delint
                 if file[1] == "attack":
                     if words[1] == "soldier":
                         chosen_unit.set_attacking(Units.SOLDIER)
+                        return
                     if words[1] == "archer":
                         chosen_unit.set_attacking(Units.ARCHER)
+                        return
                     if words[1] == "cavalry":
                         chosen_unit.set_attacking(Units.CAVALRY)
+                        return
                     if words[1] == "villager":
                         chosen_unit.set_attacking(Units.VILLAGER)
+                        return
+        # TODO: Issue 8.
+        # TODO: Delint
         if command == "townhall/create villager":
             self.player.structures[0].create_villager()
+            return
         elif command == "barracks/create soldier":
             self.player.get_barracks().create_soldier()
+            return
         elif command == "barracks/create archer":
+            self.player.debug = "Hello"
             self.player.get_barracks().create_archer()
+            return
         elif command == "barracks/create cavalry":
             self.player.get_barracks().create_cavalry()
+            return
         elif command == "townhall/create soldier":
             self.player.debug = "You build those at a barracks."
+            return
         elif command == "townhall/create archer":
             self.player.debug = "You build those at a barracks."
+            return
         elif command == "townhall/create cavalry":
             self.player.debug = "You build those at a barracks."
-        # except:
-        #     self.player.debug = "I don't understand."
+            return
+        
+        self.player.debug = "Sorry, I don't understand."
 
     def set_history_pointer(self, target: int):
         self.history_pointer = max(0, min(target, len(self.command_history)))
@@ -126,14 +147,19 @@ class CommandLine:
         self.set_history_pointer(len(self.command_history))
         self.command = self.get_command_at_pointer()
 
+    def send_command(self):
+        self.command_history.append(self.command)
+        for command in self.command.split(";"):
+            self.interpret_command(command.strip())
+            for opponent_box in self.opponent_boxes:
+                opponent_box.commands_outgoing.append(command)
+        self.clear_command()
+
     def update(self, newkey):
         if newkey == 263:
             self.command = self.command[:-1]
         elif newkey == 10:
-            self.command_history.append(self.command)
-            for command in self.command.split(";"):
-                self.interpret_command(command.strip())
-            self.clear_command()
+            self.send_command()
         elif newkey == 27:
             self.clear_command()
         elif newkey == 259:
@@ -142,12 +168,24 @@ class CommandLine:
         elif newkey == 258:
             self.set_history_pointer(self.history_pointer + 1)
             self.command = self.get_command_at_pointer()
-        elif newkey == 9:
-            self.player.game.switch_players()
+        # elif newkey == 9:
+        #     self.player.game.switch_players()
         else:
             self.command += chr(newkey)
         self.draw()
 
+    # TODO: Move for client
     def draw(self):
         self.player.screen.addstr(COMMANDLINE_Y, 0, " "*100)
         self.player.screen.addstr(COMMANDLINE_Y, 0, self.command)
+
+class RemoteCommander(CommandLine):
+    def update(self, k):
+        self.command = k
+        self.send_command()
+
+    def send_command(self):
+        self.command_history.append(self.command)
+        for command in self.command.split(";"):
+            self.interpret_command(command.strip())
+        self.clear_command()

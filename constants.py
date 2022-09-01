@@ -3,7 +3,8 @@ import curses
 from enum import Enum
 import itertools
 
-
+curses.initscr()
+curses.start_color()
 PLAYER_COLOR = 1
 TREE_COLOR = 2
 BLANK_COLOR = 3
@@ -55,12 +56,21 @@ class Buildings(Enum):
     TOWNHALL = 0
     MINE = 1
     MILL = 2
+    LUMBERCAMP = 3
+    BARRACKS = 4
+    QUARRY = 5
+    HOUSE = 6
 
 class Units(Enum):
     VILLAGER = 0
     SOLDIER = 1
     ARCHER = 2
     CAVALRY = 3
+
+class Terminal(Enum):
+    LOCAL = 0
+    CLIENT = 1
+    SERVER = 2
 
 #TODO: Refactor the other alert messages to read like this.
 def read_cost(name, cost):

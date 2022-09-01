@@ -2,12 +2,12 @@ import time
 from typing import List
 from incidental import Tree
 from tilegrid import TileGrid
-from random import random, randrange
+import random
 from constants import *
 
+class Unit:
+    enum_value = -1
 
-
-class Unit():
     def __init__(self, location, player, icon) -> None:
         self.prev_location = location
         self.location = location
@@ -23,9 +23,9 @@ class Unit():
         self.player.units = [u for u in self.player.units if u != self]
         self.player.game.all_units = [u for u in self.player.game.all_units if u != self]
         self.dead = True
-        self.player.game.screen.addstr(self.location[0] + 4, self.location[1] + 2, 
+        self.player.game.screen.screen.addstr(self.location[0] + 4, self.location[1] + 2, 
                         " ", curses.color_pair(BLANK_COLOR))
-        self.player.game.screen.refresh()
+        self.player.game.screen.screen.refresh()
 
     def set_desired_square(self, location):
         self.desired_square = location
@@ -47,15 +47,29 @@ class Unit():
                 surroundings.append((tile.content, tile.coordinate)) 
         return surroundings
         
-
-    def draw(self, screen):
-        screen.addstr(self.prev_location[0] + 4, self.prev_location[1] + 2, 
+    @staticmethod
+    def draw(screen, prev_location, location, icon, color):
+        screen.addstr(prev_location[0] + 4, prev_location[1] + 2, 
                         " ", curses.color_pair(BLANK_COLOR))
-        if not self.dead:
-            screen.addstr(self.location[0] + 4, self.location[1] + 2, 
-                            self.icon, self.player.color)
+        screen.addstr(location[0] + 4, location[1] + 2, icon, color)
+    
+    def draw_info(self):
+        b = bytearray(b"U")
+        b.append(int(self.enum_value.value) + 1)
+        b.append(self.prev_location[0]+1)
+        b.append(self.prev_location[1]+1)
+        b.append(self.location[0]+1)
+        b.append(self.location[1]+1)
+        b += self.icon.encode()
+        b.append(self.player.number + 1)
+        return b
+        # return {"type": self.enum_value, "prev_location": self.prev_location, 
+        #     "location": self.location, "icon": self.icon, 
+        #     "color": self.player.color}
 
 class Villager(Unit):
+    enum_value = Units.VILLAGER
+
     def __init__(self, location, player, capacity:int = None, 
                 move_speed: int = 500) -> None:
         if capacity == None:
@@ -78,7 +92,6 @@ class Villager(Unit):
         self.state_action = VillagerStates.IDLE
         self.state_target = None
 
-
     def set_gather_square(self, square, incidental, resource):
         if self.gather_square:
             self.player.game.grid.grid[self.gather_square].users -= {self}
@@ -94,7 +107,7 @@ class Villager(Unit):
         return sum(self.resources) >= self.capacity
 
     def gather_step(self, target):
-        self.resources[int(target.resources[0].value)] = self.resources[int(target.resources[0].value)] + 1
+        self.resources[int(target.resource.value)] = self.resources[int(target.resource.value)] + 1
 
     def step(self, location):
         super().step(location)
@@ -115,7 +128,7 @@ class Villager(Unit):
                 break
 
     def drop_if_possible(self):
-        # If next to Town Hall, drop resources
+        # If next to a building that can take the carried resource, drop the resource.
         for structure in self.player.structures:
             if self.player.game.grid.grid[self.location] in structure.get_neighbours():
                 for i,x in enumerate(self.resources):
@@ -199,14 +212,14 @@ class Villager(Unit):
         nearest = None
         target_incidental = None
         for incidental in game.incidentals:
-            if resource in incidental.resources:
+            if resource == incidental.resource:
                 for square in game.grid.grid[incidental.location].get_neighbours():
                     curr_dist = (len(square.users), square.get_dist(self.location))
                     if curr_dist < dist:
                         nearest = square
                         dist = curr_dist
                         target_incidental = incidental
-        return nearest.coordinate, target_incidental, target_incidental.resources[0]
+        return nearest.coordinate, target_incidental, target_incidental.resource
 
     def nearest_deliverable(self, resource: Resources):
         #TODO: A* Algorithm
@@ -220,23 +233,10 @@ class Villager(Unit):
 
     def update_target_square(self):
         if self.state_action == VillagerStates.GATHER:
-            if self.state_target == Resources.FOOD:
-                self.set_gather_square(*self.nearest_gatherable(Resources.FOOD))
-                self.set_deliver_square(self.nearest_deliverable(Resources.FOOD))
+            if type(self.state_target) == Resources:
+                self.set_gather_square(*self.nearest_gatherable(self.state_target))
+                self.set_deliver_square(self.nearest_deliverable(self.state_target))
                 
-            elif self.state_target == Resources.WOOD:
-                self.set_gather_square(*self.nearest_gatherable(Resources.WOOD))
-                self.set_deliver_square(self.nearest_deliverable(Resources.WOOD))
-
-            elif self.state_target == Resources.GOLD:
-                self.set_gather_square(*self.nearest_gatherable(Resources.GOLD))
-                self.set_deliver_square(self.nearest_deliverable(Resources.GOLD))
-                pass
-
-            elif self.state_target == Resources.STONE:
-                self.set_gather_square(*self.nearest_gatherable(Resources.STONE))
-                self.set_deliver_square(self.nearest_deliverable(Resources.STONE))
-                pass
         if self.gather_square == None:
             pass
         if self.deliver_square == None:
@@ -247,12 +247,14 @@ class Villager(Unit):
         self.player.villagers = [u for u in self.player.villagers if u != self]
         
 class Army(Unit):
-
+    enum_value = -1
     def __init__(self, location, player, icon):
         super().__init__(location, player, icon)
         self.state_action = ArmyStates.IDLE
         self.state_target = None
 
+        random.seed(self.player.next_random())
+        self.random_state = random.getstate()
 
     def stop(self):
         self.state_action = ArmyStates.IDLE
@@ -278,12 +280,17 @@ class Army(Unit):
     def is_attackable_unit(self, unit):
         return self.player.game.grid.grid[unit.location].get_dist(self.location) <= self.attack_range
 
+    def random_attack_result(self):
+        random.setstate(self.random_state)
+        retval = random.randrange(10)
+        self.random_state = random.getstate()
+        return retval
+
     def attack_once(self, target):
-        r = randrange(10)
+        r = self.random_attack_result()
         if r < 3:
             target.die()
             self.player.debug = "Dead"
-
 
     def attack_check(self):
         try:
@@ -303,11 +310,7 @@ class Army(Unit):
             for a in range(attack_steps):
                 self.attack_once(actual_target)
                 if actual_target.dead:
-                    pass
-
-        # else:
-        #     exit(f"{self.desired_square} {self.location}")
-            
+                    pass            
             
     def update_move(self, delta_time):
         """
@@ -319,8 +322,7 @@ class Army(Unit):
             except ValueError:
                 self.state_action = ArmyStates.IDLE
                 self.state_target = None
-        if self.location != self.desired_square and self.desired_square != None:
-            
+        if self.desired_square != None and self.location != self.desired_square:
             self.time_on_task += delta_time
             s = f"{self.time_on_task}"
             self.attack_check()
@@ -364,8 +366,9 @@ class Army(Unit):
                 break
         return killed
 
-
 class Soldier(Army):
+    enum_value = Units.SOLDIER
+
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "S")
         self.level = level
@@ -373,8 +376,6 @@ class Soldier(Army):
         self.desired_square = None
         self.move_speed = SOLDIER_SPEED
         self.player.soldiers.append(self)
-
-    
 
     def get_index(self):
         if self in self.player.soldiers:
@@ -387,6 +388,8 @@ class Soldier(Army):
         self.player.soldiers = [u for u in self.player.soldiers if u != self]
 
 class Archer(Army):
+    enum_value = Units.ARCHER
+
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "A")
         self.level = level
@@ -395,7 +398,6 @@ class Archer(Army):
         self.desired_square = None
         self.move_speed = ARCHER_SPEED
         self.player.archers.append(self)
-
 
     def get_index(self):
         if self in self.player.archers:
@@ -408,6 +410,8 @@ class Archer(Army):
         self.player.archers = [u for u in self.player.archers if u != self]
 
 class Cavalry(Army):
+    enum_value = Units.CAVALRY
+
     def __init__(self, location, player, level: int =1) -> None:
         super().__init__(location, player, "C")
         self.level = level
@@ -415,8 +419,6 @@ class Cavalry(Army):
         self.desired_square = None
         self.move_speed = CAVALRY_SPEED
         self.player.cavalry.append(self)
-
-    
 
     def get_index(self):
         if self in self.player.cavalry:

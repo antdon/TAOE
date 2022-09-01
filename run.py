@@ -1,18 +1,14 @@
 from constants import *
-from player import Player
 from game import *
-from incidental import *
-from commandline import *
 from sys import argv
 
 def main(stdscr):
     # Clear screen
     stdscr.clear()
-    if len(argv) == 1:
-        is_npc_game = False
+    if len(argv) > 1:
+        game = Game(stdscr, is_npc_game = argv[1])
     else:
-        is_npc_game = bool(argv[1])
-    game = Game(stdscr, is_npc_game = is_npc_game)
+        game = Game(stdscr,seed=1)
     curses.init_color(8,0,250,0)
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(ENEMY_COLOR, curses.COLOR_BLACK, curses.COLOR_YELLOW)
@@ -29,12 +25,12 @@ def main(stdscr):
 
 
 if __name__ == "__main__":
-    # try:
-    wrapper(main)
-    # except curses.error as e:
-    #     print("Had error...", type(e), e)
-    #     print("If this happens on startup, you might need to resize the terminal.")
-    #     print("else delete these lines in tester.py and get proper printout")
+    try:
+        wrapper(main)
+    except curses.error as e:
+        print("Had error...", type(e), e)
+        print("If this happens on startup, you might need to resize the terminal.")
+        print("else delete these lines in tester.py and get proper printout")
 
 
 
