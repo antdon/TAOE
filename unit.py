@@ -322,7 +322,7 @@ class Army(Unit):
             except ValueError:
                 self.state_action = ArmyStates.IDLE
                 self.state_target = None
-        if self.location != self.desired_square and self.desired_square != None:
+        if self.desired_square != None and self.location != self.desired_square:
             self.time_on_task += delta_time
             s = f"{self.time_on_task}"
             self.attack_check()

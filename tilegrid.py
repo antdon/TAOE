@@ -31,7 +31,7 @@ class Tile:
 
 
 class TileGrid():
-    def __init__(self, symmetry) -> None:
+    def __init__(self) -> None:
         self.grid : dict[Tile] = {(y,x) : Tile((y,x), self) 
             for y,x in itertools.product(range(MAPHEIGHT), range(MAPWIDTH))}
 
@@ -43,8 +43,7 @@ class TileGrid():
                 for i,j in itertools.product(range(left,left+width), 
                                             range(top, top+height)):
                     self.grid[(i, j)].content = resource((i,j))
-                    if symmetry:
-                        self.grid[(MAPHEIGHT - i, MAPWIDTH - j)].content = resource((MAPHEIGHT - i,MAPWIDTH - j))
+                    self.grid[(MAPHEIGHT - i, MAPWIDTH - j)].content = resource((MAPHEIGHT - i,MAPWIDTH - j))
 
 
 

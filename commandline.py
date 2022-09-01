@@ -10,6 +10,7 @@ class CommandLine:
         self.screen = screen
         self.player = player
         self.command_history = []
+        self.opponent_boxes = []
         self.history_pointer = 0
 
     def set_opponent_boxes(self, opponent_boxes):
@@ -28,110 +29,109 @@ class CommandLine:
         unit_lookup = {"archer": self.player.archers, 
                             "soldier": self.player.soldiers,
                             "cavalry": self.player.cavalry}
-        try:
-            if "villager" == file[0][:8]:
-                try:
-                    ind = int(file[0][8:])
-                    vil = self.player.villagers[ind]
-                except:
-                    self.player.debug = f"Error! {file[0]} is not a valid villager..."
+        if "villager" == file[0][:8]:
+            try:
+                ind = int(file[0][8:])
+                vil = self.player.villagers[ind]
+            except:
+                self.player.debug = f"Error! {file[0]} is not a valid villager..."
+                return
+            if file[1] == "gather":
+                state = self.state_lookup(words[1])
+                if state != None:
+                    vil.set_state(VillagerStates.GATHER, state)
+                    vil.update_target_square()
                     return
-                if file[1] == "gather":
-                    state = self.state_lookup(words[1])
-                    if state != None:
-                        vil.set_state(VillagerStates.GATHER, state)
-                        vil.update_target_square()
-                        return
-                if file[1] == "build":
-                    state = self.state_lookup(words[1])
-                    
-                    if state != None:
-                        try:
-                            y,x = int(words[2], 16), int(words[3], 16)
-                        except ValueError:
-                            self.player.debug = f"Invalid coordinates! (Remember row first)"
-                            return
-                    cost = state.get_cost()
-                    if self.player.can_afford(cost):
-                        vil.set_desired_square((y,x))
-                        vil.set_state(VillagerStates.BUILD, state)
-                    else:
-                        self.player.debug = read_cost("building", cost)
-                    return
-            for unit_type, unit_container in unit_lookup.items():
-                if unit_type == file[0][:len(unit_type)]:
+            if file[1] == "build":
+                state = self.state_lookup(words[1])
+                
+                if state != None:
                     try:
-                        self.player.debug = len(unit_container)
-                        ind = int(file[0][len(unit_type):])
-                        chosen_unit = unit_container[ind]
-                    except:
-                        if file[0][len(unit_type):] == "s":
-                            if file[1] == "attack":
-                                for u in unit_container:
-                                    # TODO: Delint
-                                    if words[1] == "soldier":
-                                        u.set_attacking(Units.SOLDIER)
-                                    if words[1] == "archer":
-                                        u.set_attacking(Units.ARCHER)
-                                    if words[1] == "cavalry":
-                                        u.set_attacking(Units.CAVALRY)
-                                    if words[1] == "villager":
-                                        u.set_attacking(Units.VILLAGER)
-                                return
-                        else:
-                            self.player.debug = f"Error! {file[0]} is not a valid {unit_type}"
-                            return
-                    if file[1] == "move":
-                        try:
-                            y,x = int(words[1], 16), int(words[2], 16)
-                            if (y,x) not in self.player.game.grid.grid:
-                                raise KeyError
-                        except (ValueError, KeyError):
-                            self.player.debug = f"Invalid coordinates! (Remember row first)"
-                            return
-                        chosen_unit.state_action = ArmyStates.MOVE
-                        chosen_unit.state_target = None
-                        chosen_unit.set_desired_square((y,x))
+                        y,x = int(words[2], 16), int(words[3], 16)
+                    except ValueError:
+                        self.player.debug = f"Invalid coordinates! (Remember row first)"
                         return
-                    # TODO: Delint
-                    if file[1] == "attack":
-                        if words[1] == "soldier":
-                            chosen_unit.set_attacking(Units.SOLDIER)
+                cost = state.get_cost()
+                if self.player.can_afford(cost):
+                    vil.set_desired_square((y,x))
+                    vil.set_state(VillagerStates.BUILD, state)
+                else:
+                    self.player.debug = read_cost("building", cost)
+                return
+        for unit_type, unit_container in unit_lookup.items():
+            if unit_type == file[0][:len(unit_type)]:
+                try:
+                    self.player.debug = len(unit_container)
+                    ind = int(file[0][len(unit_type):])
+                    chosen_unit = unit_container[ind]
+                except:
+                    if file[0][len(unit_type):] == "s":
+                        if file[1] == "attack":
+                            for u in unit_container:
+                                # TODO: Delint
+                                if words[1] == "soldier":
+                                    u.set_attacking(Units.SOLDIER)
+                                if words[1] == "archer":
+                                    u.set_attacking(Units.ARCHER)
+                                if words[1] == "cavalry":
+                                    u.set_attacking(Units.CAVALRY)
+                                if words[1] == "villager":
+                                    u.set_attacking(Units.VILLAGER)
                             return
-                        if words[1] == "archer":
-                            chosen_unit.set_attacking(Units.ARCHER)
-                            return
-                        if words[1] == "cavalry":
-                            chosen_unit.set_attacking(Units.CAVALRY)
-                            return
-                        if words[1] == "villager":
-                            chosen_unit.set_attacking(Units.VILLAGER)
-                            return
-            # TODO: Issue 8.
-            # TODO: Delint
-            if command == "townhall/create villager":
-                self.player.structures[0].create_villager()
-                return
-            elif command == "barracks/create soldier":
-                self.player.get_barracks().create_soldier()
-                return
-            elif command == "barracks/create archer":
-                self.player.get_barracks().create_archer()
-                return
-            elif command == "barracks/create cavalry":
-                self.player.get_barracks().create_cavalry()
-                return
-            elif command == "townhall/create soldier":
-                self.player.debug = "You build those at a barracks."
-                return
-            elif command == "townhall/create archer":
-                self.player.debug = "You build those at a barracks."
-                return
-            elif command == "townhall/create cavalry":
-                self.player.debug = "You build those at a barracks."
-                return
-        except:
-            pass
+                    else:
+                        self.player.debug = f"Error! {file[0]} is not a valid {unit_type}"
+                        return
+                if file[1] == "move":
+                    try:
+                        y,x = int(words[1], 16), int(words[2], 16)
+                        if (y,x) not in self.player.game.grid.grid:
+                            raise KeyError
+                    except (ValueError, KeyError):
+                        self.player.debug = f"Invalid coordinates! (Remember row first)"
+                        return
+                    chosen_unit.state_action = ArmyStates.MOVE
+                    chosen_unit.state_target = None
+                    chosen_unit.set_desired_square((y,x))
+                    return
+                # TODO: Delint
+                if file[1] == "attack":
+                    if words[1] == "soldier":
+                        chosen_unit.set_attacking(Units.SOLDIER)
+                        return
+                    if words[1] == "archer":
+                        chosen_unit.set_attacking(Units.ARCHER)
+                        return
+                    if words[1] == "cavalry":
+                        chosen_unit.set_attacking(Units.CAVALRY)
+                        return
+                    if words[1] == "villager":
+                        chosen_unit.set_attacking(Units.VILLAGER)
+                        return
+        # TODO: Issue 8.
+        # TODO: Delint
+        if command == "townhall/create villager":
+            self.player.structures[0].create_villager()
+            return
+        elif command == "barracks/create soldier":
+            self.player.get_barracks().create_soldier()
+            return
+        elif command == "barracks/create archer":
+            self.player.debug = "Hello"
+            self.player.get_barracks().create_archer()
+            return
+        elif command == "barracks/create cavalry":
+            self.player.get_barracks().create_cavalry()
+            return
+        elif command == "townhall/create soldier":
+            self.player.debug = "You build those at a barracks."
+            return
+        elif command == "townhall/create archer":
+            self.player.debug = "You build those at a barracks."
+            return
+        elif command == "townhall/create cavalry":
+            self.player.debug = "You build those at a barracks."
+            return
+        
         self.player.debug = "Sorry, I don't understand."
 
     def set_history_pointer(self, target: int):

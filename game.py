@@ -12,7 +12,7 @@ class Game:
     def __init__(self, screen, seed=None, is_server = True, 
                     is_npc_game = False) -> None:
         self.screen = Screen(screen, MAPHEIGHT, MAPWIDTH)
-        self.grid = TileGrid(not is_npc_game)
+        self.grid = TileGrid()
 
         self.all_structures = []
         self.all_units = []
@@ -21,9 +21,22 @@ class Game:
 
         # TODO: multiplayer
         if is_npc_game:
-            self.players = [Player(screen, self, PLAYER_COLOR)]
+            self.players = [Player(screen, self, PLAYER_COLOR, seed)]
             self.players[0].units.append(Villager((23, 16), self.players[0]))
             Town_Hall((20, 10), self.players[0])
+            self.enemy = NPC()
+            self.players.append(self.enemy)
+            self.enemy.game = self
+            self.players[1].units.append(Villager((MAPHEIGHT-23-1, MAPWIDTH-17), 
+                                        self.players[1]))
+            Town_Hall((MAPHEIGHT-20-3, MAPWIDTH-10-6), self.players[1])
+            for unit in self.enemy.units:
+                unit.move_speed *= 2
+            for player in self.players:
+                player.init_random()
+
+            self.players[0].enemy = self.enemy
+            self.enemy.enemy = self.players[0]
         else:
             if is_server:
                 self.players = [Player(screen, self, PLAYER_COLOR, seed, 0)]
@@ -54,15 +67,6 @@ class Game:
 
         # TODO: multiplayer
         self.is_npc_game = is_npc_game
-        if self.is_npc_game:
-            self.enemy = NPC()
-            self.enemy.game = self
-            self.enemy.units.append(Soldier((0x10, 0x70), self.enemy))
-            for unit in self.enemy.units:
-                unit.move_speed *= 2
-
-            self.players[0].enemy = self.enemy
-            self.enemy.enemy = self.players[0]
 
         self.target_index = 0
 
@@ -96,9 +100,10 @@ class Game:
 
         if self.is_npc_game:
             if not self.enemy.units:
-                self.enemy.spawn(self.player)
+                self.enemy.spawn(self.players[0])
 
             if self.time > 100000:
                 self.enemy.set_attacks()
+        # self.players[0].debug = f"{[p.units for p in self.players]} {self.all_units}"
 
         

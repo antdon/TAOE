@@ -87,10 +87,20 @@ class NPC(Chieftain):
         super().__init__()
         self.color = curses.color_pair(ENEMY_COLOR)
         self.number = number
+        self.seed = 2
+
+    def init_random(self):
+        pass
+
+    def next_random(self):
+        return random.randrange(10000)
+
+    def get_updates(self, * args):
+        pass
 
     def spawn(self, target):
         for _ in range(len(target.units) - len(target.villagers) + 2):
-            y,x = (random.randrange(MAPHEIGHT), randrange(0x4a,MAPWIDTH))
+            y,x = (random.randrange(MAPHEIGHT), random.randrange(0x4a,MAPWIDTH))
             self.units.append(random.choice([Cavalry, Archer, Soldier])((y,x), self))
             for unit in self.units:
                 unit.move_speed *= 2
@@ -100,6 +110,6 @@ class NPC(Chieftain):
         for unit in self.units:
             if unit.state_action == ArmyStates.IDLE:
                 if filter(lambda u: u not in self.enemy.villagers, self.enemy.units):
-                    unit.set_attacking(choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]))
+                    unit.set_attacking(random.choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]))
                 else:
                     unit.set_attack(Units.VILLAGER)
