@@ -2,7 +2,7 @@ import time
 from typing import List
 from incidental import Tree
 from tilegrid import TileGrid
-from random import random, randrange
+import random
 from constants import *
 
 class Unit:
@@ -253,6 +253,9 @@ class Army(Unit):
         self.state_action = ArmyStates.IDLE
         self.state_target = None
 
+        random.seed(self.player.next_random())
+        self.random_state = random.getstate()
+
     def stop(self):
         self.state_action = ArmyStates.IDLE
         self.state_target = None
@@ -277,8 +280,14 @@ class Army(Unit):
     def is_attackable_unit(self, unit):
         return self.player.game.grid.grid[unit.location].get_dist(self.location) <= self.attack_range
 
+    def random_attack_result(self):
+        random.setstate(self.random_state)
+        retval = random.randrange(10)
+        self.random_state = random.getstate()
+        return retval
+
     def attack_once(self, target):
-        r = randrange(10)
+        r = self.random_attack_result()
         if r < 3:
             target.die()
             self.player.debug = "Dead"

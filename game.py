@@ -9,7 +9,8 @@ from incidental import *
 from screen import Screen
 
 class Game:
-    def __init__(self, screen, is_server = True, is_npc_game = False) -> None:
+    def __init__(self, screen, seed=None, is_server = True, 
+                    is_npc_game = False) -> None:
         self.screen = Screen(screen, MAPHEIGHT, MAPWIDTH)
         self.grid = TileGrid(not is_npc_game)
 
@@ -25,13 +26,13 @@ class Game:
             Town_Hall((20, 10), self.players[0])
         else:
             if is_server:
-                self.players = [Player(screen, self, PLAYER_COLOR, 0)]
-                self.players.append(Player(None, self, ENEMY_COLOR, 1, 
+                self.players = [Player(screen, self, PLAYER_COLOR, seed, 0)]
+                self.players.append(Player(None, self, ENEMY_COLOR, seed, 1, 
                                             terminal = Terminal.SERVER))
             else:
-                self.players = [Player(None, self, PLAYER_COLOR, 0, 
+                self.players = [Player(None, self, PLAYER_COLOR, seed, 0,
                                 terminal = Terminal.CLIENT)]
-                self.players.append(Player(screen, self, ENEMY_COLOR, 1))
+                self.players.append(Player(screen, self, ENEMY_COLOR, seed, 1))
             for player in self.players:
                 player.commander.set_opponent_boxes([other.screen for other in 
                     self.players if other != player])
@@ -42,6 +43,8 @@ class Game:
             Town_Hall((MAPHEIGHT-20-3, MAPWIDTH-10-6), self.players[1])
             self.players[0].enemy = self.players[1]
             self.players[1].enemy = self.players[0]
+            for player in self.players:
+                player.init_random()
             
         self.debug = []
         self.incidentals = []

@@ -8,7 +8,7 @@ def main(stdscr):
     if len(argv) > 1:
         game = Game(stdscr, is_npc_game = argv[1])
     else:
-        game = Game(stdscr)
+        game = Game(stdscr,seed=1)
     curses.init_color(8,0,250,0)
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(ENEMY_COLOR, curses.COLOR_BLACK, curses.COLOR_YELLOW)

@@ -3,7 +3,7 @@ from structure import Structure, Town_Hall, Barracks
 from unit import Unit, Villager, Archer, Soldier, Cavalry
 from constants import *
 from commandline import *
-from random import choice, randrange
+import random
 from terminal import Server, Client
 
 
@@ -29,23 +29,37 @@ class Chieftain():
         
 
 class Player(Chieftain):
-    def __init__(self, stdscr, game, color, number=0, 
+    def __init__(self, stdscr, game, color, seed, number=0, 
                  terminal = Terminal.LOCAL) -> None:
         super().__init__()
         self.debug = ""
         self.game = game
+        # TODO: Highly suspect this is redundant, but needs closer inspection.
+        # See removing serialised data.
         self.number = number
+
         if terminal == Terminal.CLIENT:
             self.commander = RemoteCommander(stdscr, self)
-            self.screen = Client()
+            self.screen = Client(seed, self)
         elif terminal == Terminal.SERVER:
             self.commander = RemoteCommander(stdscr, self)
-            self.screen = Server()
+            self.screen = Server(seed, self)
         else:
-            self.commander = CommandLine(stdscr, self, )
+            self.commander = CommandLine(stdscr, self)
             self.screen = stdscr
+            self.seed = seed
             self.screen.nodelay(1)
         self.color = curses.color_pair(color)
+
+    def init_random(self):
+        random.seed(self.seed)
+        self.random_state = random.getstate()
+
+    def next_random(self):
+        random.setstate(self.random_state)
+        retval = random.randrange(10000)
+        self.random_state = random.getstate()
+        return retval
 
     def get_barracks(self):
         for structure in self.structures:
@@ -76,8 +90,8 @@ class NPC(Chieftain):
 
     def spawn(self, target):
         for _ in range(len(target.units) - len(target.villagers) + 2):
-            y,x = (randrange(MAPHEIGHT), randrange(0x4a,MAPWIDTH))
-            self.units.append(choice([Cavalry, Archer, Soldier])((y,x), self))
+            y,x = (random.randrange(MAPHEIGHT), randrange(0x4a,MAPWIDTH))
+            self.units.append(random.choice([Cavalry, Archer, Soldier])((y,x), self))
             for unit in self.units:
                 unit.move_speed *= 2
 
