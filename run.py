@@ -1,18 +1,14 @@
 from constants import *
-from player import Player
 from game import *
-from incidental import *
-from commandline import *
 from sys import argv
 
 def main(stdscr):
     # Clear screen
     stdscr.clear()
-    if len(argv) == 1:
-        is_npc_game = False
+    if len(argv) > 1:
+        game = Game(stdscr, is_npc_game = argv[1])
     else:
-        is_npc_game = bool(argv[1])
-    game = Game(stdscr, is_npc_game = is_npc_game)
+        game = Game(stdscr)
     curses.init_color(8,0,250,0)
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(ENEMY_COLOR, curses.COLOR_BLACK, curses.COLOR_YELLOW)

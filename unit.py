@@ -51,7 +51,6 @@ class Unit:
     def draw(screen, prev_location, location, icon, color):
         screen.addstr(prev_location[0] + 4, prev_location[1] + 2, 
                         " ", curses.color_pair(BLANK_COLOR))
-        # TODO: Don't draw things that are dead in the first place.
         screen.addstr(location[0] + 4, location[1] + 2, icon, color)
     
     def draw_info(self):
@@ -108,7 +107,7 @@ class Villager(Unit):
         return sum(self.resources) >= self.capacity
 
     def gather_step(self, target):
-        self.resources[int(target.resources[0].value)] = self.resources[int(target.resources[0].value)] + 1
+        self.resources[int(target.resource.value)] = self.resources[int(target.resource.value)] + 1
 
     def step(self, location):
         super().step(location)
@@ -213,14 +212,14 @@ class Villager(Unit):
         nearest = None
         target_incidental = None
         for incidental in game.incidentals:
-            if resource in incidental.resources:
+            if resource == incidental.resource:
                 for square in game.grid.grid[incidental.location].get_neighbours():
                     curr_dist = (len(square.users), square.get_dist(self.location))
                     if curr_dist < dist:
                         nearest = square
                         dist = curr_dist
                         target_incidental = incidental
-        return nearest.coordinate, target_incidental, target_incidental.resources[0]
+        return nearest.coordinate, target_incidental, target_incidental.resource
 
     def nearest_deliverable(self, resource: Resources):
         #TODO: A* Algorithm

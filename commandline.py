@@ -12,6 +12,9 @@ class CommandLine:
         self.command_history = []
         self.history_pointer = 0
 
+    def set_opponent_boxes(self, opponent_boxes):
+        self.opponent_boxes = opponent_boxes
+
     def state_lookup(self, word: str):
         return {"berry": Resources.FOOD, "food": Resources.FOOD,
                 "gold": Resources.GOLD, "wood": Resources.WOOD,
@@ -144,14 +147,19 @@ class CommandLine:
         self.set_history_pointer(len(self.command_history))
         self.command = self.get_command_at_pointer()
 
+    def send_command(self):
+        self.command_history.append(self.command)
+        for command in self.command.split(";"):
+            self.interpret_command(command.strip())
+            for opponent_box in self.opponent_boxes:
+                opponent_box.commands_outgoing.append(command)
+        self.clear_command()
+
     def update(self, newkey):
         if newkey == 263:
             self.command = self.command[:-1]
         elif newkey == 10:
-            self.command_history.append(self.command)
-            for command in self.command.split(";"):
-                self.interpret_command(command.strip())
-            self.clear_command()
+            self.send_command()
         elif newkey == 27:
             self.clear_command()
         elif newkey == 259:
@@ -174,48 +182,10 @@ class CommandLine:
 class RemoteCommander(CommandLine):
     def update(self, k):
         self.command = k
-        # Send an enter
-        super().update(10)
+        self.send_command()
 
-class NullScreen:
-    def __init__(self, game):
-        self.game = game
-        serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        serversocket.bind(('localhost', 8089))
-        serversocket.listen()
-        self.serversocket = serversocket
-        self.connection = None
-        x = threading.Thread(target=self.listen)#, daemon=True)
-        x.start()
-        y = threading.Thread(target=self.send_state)
-        y.start()
-        self.commands = []
-
-    def send_state(self):
-        while 1:
-            if self.connection:
-                self.connection.send(self.game.get_state())
-            
-
-    def listen(self):
-        self.connection, address = self.serversocket.accept()
-        while 1:
-            try:
-                buf = self.connection.recv(128)
-                if buf:
-                    self.commands.append(buf.decode())
-            except BlockingIOError:
-                pass
-
-    def getch(self, *args):
-        if self.commands:
-            return self.commands.pop(0)
-        else:
-            return -1
-    
-    def addstr(self, *args):
-        pass
-
-    def nodelay(self, *args):
-        pass
+    def send_command(self):
+        self.command_history.append(self.command)
+        for command in self.command.split(";"):
+            self.interpret_command(command.strip())
+        self.clear_command()

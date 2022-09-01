@@ -4,6 +4,7 @@ from unit import Unit, Villager, Archer, Soldier, Cavalry
 from constants import *
 from commandline import *
 from random import choice, randrange
+from terminal import Server, Client
 
 
 class Chieftain():
@@ -28,22 +29,23 @@ class Chieftain():
         
 
 class Player(Chieftain):
-    def __init__(self, stdscr, game, color, number, is_remote= False) -> None:
+    def __init__(self, stdscr, game, color, number=0, 
+                 terminal = Terminal.LOCAL) -> None:
         super().__init__()
         self.debug = ""
         self.game = game
         self.number = number
-        if stdscr == None:
-            self.screen = NullScreen(game)
-        else:
-            self.screen = stdscr
-        
-        self.screen.nodelay(1)
-        self.color = curses.color_pair(color)
-        if is_remote:
+        if terminal == Terminal.CLIENT:
             self.commander = RemoteCommander(stdscr, self)
+            self.screen = Client()
+        elif terminal == Terminal.SERVER:
+            self.commander = RemoteCommander(stdscr, self)
+            self.screen = Server()
         else:
-            self.commander = CommandLine(stdscr, self)
+            self.commander = CommandLine(stdscr, self, )
+            self.screen = stdscr
+            self.screen.nodelay(1)
+        self.color = curses.color_pair(color)
 
     def get_barracks(self):
         for structure in self.structures:
@@ -51,10 +53,12 @@ class Player(Chieftain):
                 return structure
 
     def get_updates(self, time):
+        # TODO: Sus
         k = self.screen.getch()
         if k != -1:
             self.commander.update(k)
 
+        #TODO: Extra sus
         self.screen.addstr(0,0, 
         f"Wood: {self.structures[0].resources[int(Resources.WOOD.value)]}    " + 
         f"Food: {self.structures[0].resources[int(Resources.FOOD.value)]}      " +
@@ -65,9 +69,10 @@ class Player(Chieftain):
         self.screen.addstr(COMMANDLINE_Y - 1,0, f"{self.debug} ")
 
 class NPC(Chieftain):
-    def __init__(self) -> None:
+    def __init__(self, number =1) -> None:
         super().__init__()
         self.color = curses.color_pair(ENEMY_COLOR)
+        self.number = number
 
     def spawn(self, target):
         for _ in range(len(target.units) - len(target.villagers) + 2):

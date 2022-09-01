@@ -14,7 +14,8 @@ class Incidental:
 
     @classmethod
     def draw(cls, screen, location):
-        screen.addstr(location[0] + 4, location[1] + 2, cls.get_rep(location), cls.color)
+        screen.addstr(location[0] + 4, location[1] + 2, 
+                    cls.get_rep(location), cls.color)
 
     def draw_info(self):
         b = bytearray(b"I")
@@ -30,10 +31,6 @@ class Tree(Incidental):
     color = curses.color_pair(TREE_COLOR)
     resource = Resources.WOOD
 
-    def __init__(self, location) -> None:
-        super().__init__(location)
-        self.resources = [Resources.WOOD]
-
     @classmethod
     def get_rep(cls, location):
         return " "
@@ -42,10 +39,6 @@ class Vein(Incidental):
     color = curses.color_pair(VEIN_COLOR)
     resource = Resources.GOLD
 
-    def __init__(self, location) -> None:
-        super().__init__(location)
-        self.resources = [Resources.GOLD]
-
     @classmethod
     def get_rep(cls, location):
         return "|"
@@ -53,10 +46,6 @@ class Vein(Incidental):
 class Rocks(Incidental):
     color = curses.color_pair(ROCK_COLOR)
     resource = Resources.STONE
-
-    def __init__(self, location) -> None:
-        super().__init__(location)
-        self.resources = [Resources.STONE]
     
     @classmethod
     def get_rep(cls, location):
@@ -65,10 +54,6 @@ class Rocks(Incidental):
 class Berry(Incidental):
     color = curses.color_pair(BERRY_COLOR)
     resource = Resources.FOOD
-
-    def __init__(self, location) -> None:
-        super().__init__(location)
-        self.resources = [Resources.FOOD]
 
     @classmethod
     def get_rep(cls, location):

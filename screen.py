@@ -14,14 +14,7 @@ class Screen:
             self.screen.addstr(3, x+2, f"{xval[1]}")
 
     def draw_state(self, game):
-        # game = json.loads(game.strip())
-        # name_obj_lookup = {
-        #     obj.name: obj for obj in 
-        #     [Structure, Town_Hall, House, Barracks, Collector, Mine, Mill, 
-        #     LumberCamp, Build_Site, Incidental, Tree, Vein, Rocks, Berry]
-        # }
         i = 0
-        # with open("asdf", "wb") as savefile:
         while len(game) >= 8:
             i += 1
             if i == 1500:
@@ -34,12 +27,16 @@ class Screen:
                     location = (game[2]-1, game[3]-1)
                     player = game[4] - 1
                     color = [PLAYER_COLOR, ENEMY_COLOR][player]
-                    structype.draw(self.screen, location, curses.color_pair(color))
+                    structype.draw(self.screen, location, 
+                                    curses.color_pair(color))
                 elif game[0] == ord("I"):
+                    # We don't need to track the incidentals so much...
                     inctype = [Berry, Tree, Rocks, Vein][game[1]- 1]
                     location = (game[2]-1, game[3]-1)
                     inctype.draw(self.screen, location)
                 elif game[0] == ord("U"):
+                    # TODO: make the screen track the previous location, not the
+                    # unit tracking it...
                     unittype = [Villager, Soldier, Archer, Cavalry][game[1]-1]
                     prev_location = (game[2]-1, game[3]-1)
                     location = (game[4]-1, game[5]-1)
@@ -47,18 +44,11 @@ class Screen:
                     player = game[7] - 1
                     color = [PLAYER_COLOR, ENEMY_COLOR][player]
                     unittype.draw(self.screen, prev_location, location, icon, 
-                        curses.color_pair(color))
+                                    curses.color_pair(color))
                 else:
+                    raise Exception("Got invalid start character")
                     exit(f"{chr(game[0])}")
                 game = game[8:]
             except IndexError:
                 pass 
-
-        # for structure in game['structures']:
-        #     name_obj_lookup[structure['type']].draw(self.screen, structure["location"], structure["color"])
-        # for incidental in game['incidentals']:
-        #     name_obj_lookup[incidental['type']].draw(self.screen, incidental["location"], incidental["color"])
-        # for unit in game['units']:
-        #     [Villager, Soldier, Archer, Cavalry][int(unit['type'])].draw(self.screen, unit["prev_location"], unit["location"], 
-        #         unit["icon"], unit["color"])
         self.screen.refresh()

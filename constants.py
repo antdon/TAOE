@@ -67,6 +67,11 @@ class Units(Enum):
     ARCHER = 2
     CAVALRY = 3
 
+class Terminal(Enum):
+    LOCAL = 0
+    CLIENT = 1
+    SERVER = 2
+
 #TODO: Refactor the other alert messages to read like this.
 def read_cost(name, cost):
     s = f"A {name} costs "
