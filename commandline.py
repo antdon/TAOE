@@ -184,13 +184,7 @@ class CommandLine:
     def ls(self, game, units, screen):
         entries = []
         def setBuffer(unit):
-            if len(str(unit.location[0])) == 2 and len(str(unit.location[1])) == 2:
-                buffer = ""
-            elif len(str(unit.location[0])) == 2 or len(str(unit.location[1])) == 2:
-                buffer = " "
-            else:
-                buffer = "  "
-            return buffer
+            return " " * (8 - len(str(unit.location[0])) - len(str(unit.location[1])))
 
         def setState(unit):
             state = "         "
@@ -230,10 +224,11 @@ class CommandLine:
         border = "-" * len(max(entries, key=len))
         index = 0
         for i, entry in enumerate(reversed(entries)):
-            screen.addstr(COMMANDLINE_Y - i, UNIT_INFO_Y, f"{entry}")
+            screen.addstr(COMMANDLINE_Y - i, UNIT_INFO_X, entry)
             index = i
-        screen.addstr(COMMANDLINE_Y + 1, UNIT_INFO_Y, f"{border}")
-        screen.addstr(COMMANDLINE_Y - 1 - index, UNIT_INFO_Y, f"{border}")
+        screen.addstr(COMMANDLINE_Y + 1, UNIT_INFO_X, border)
+        screen.addstr(COMMANDLINE_Y - 1 - index, UNIT_INFO_X, border)
+        screen.addstr(COMMANDLINE_Y - 2 - index, UNIT_INFO_X, " "*len(border))
         
 
 class RemoteCommander(CommandLine):
