@@ -4,7 +4,7 @@ import socket
 from structure import LumberCamp, Mine, Mill, Barracks
 import time
 
-from unit import Soldier, Villager
+from unit import Archer, Cavalry, Soldier, Villager
 
 class CommandLine:
     def __init__(self, screen, player):
@@ -184,22 +184,29 @@ class CommandLine:
     @classmethod
     def ls(self, game, units, screen):
         entries = []
-        for i, unit in enumerate([soldier for soldier in units if type(soldier) == Soldier]):
-            if len(str(unit.location[0])) == 2 and len(str(unit.location[1])) == 2:
-                buffer = " "
-            elif len(str(unit.location[0])) == 2 or len(str(unit.location[1])) == 2:
-                buffer = "  "
-            else:
-                buffer = "   "
-            entries.append(f"| soldier{i}     {unit.location}  " + buffer + "|")
-        for i, unit in enumerate([villager for villager in units if type(villager) == Villager]):
+        def setBuffer(unit):
             if len(str(unit.location[0])) == 2 and len(str(unit.location[1])) == 2:
                 buffer = ""
             elif len(str(unit.location[0])) == 2 or len(str(unit.location[1])) == 2:
                 buffer = " "
             else:
                 buffer = "  "
+            return buffer
+
+        for i, unit in enumerate([soldier for soldier in units if type(soldier) == Soldier]):
+            buffer = setBuffer(unit)
+            entries.append(f"| soldier{i}      {unit.location}  " + buffer + "|")
+        for i, unit in enumerate([villager for villager in units if type(villager) == Villager]):
+            buffer = setBuffer(unit)
             entries.append(f"| villager{i}     {unit.location}  " + buffer + "|")
+        for i, unit in enumerate([cavalry for cavalry in units if type(cavalry) == Cavalry]):
+            buffer = setBuffer(unit)
+            entries.append(f"| cavalry{i}      {unit.location}  " + buffer + "|")
+        for i, unit in enumerate([archer for archer in units if type(archer) == Archer]):
+            buffer = setBuffer(unit)
+            entries.append(f"| archer{i}       {unit.location}  " + buffer + "|")
+
+
 
         border = "-" * len(max(entries, key=len))
         index = 0
