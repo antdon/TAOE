@@ -4,6 +4,8 @@ import socket
 from structure import LumberCamp, Mine, Mill, Barracks
 import time
 
+from unit import Soldier, Villager
+
 class CommandLine:
     def __init__(self, screen, player):
         self.command = ""
@@ -178,6 +180,29 @@ class CommandLine:
     def draw(self):
         self.player.screen.addstr(COMMANDLINE_Y, 0, " "*100)
         self.player.screen.addstr(COMMANDLINE_Y, 0, self.command)
+
+    @classmethod
+    def ls(self, game, units, screen):
+        entries = []
+        for i, unit in enumerate(units):
+            if len(str(unit.location[0])) == 2 and len(str(unit.location[1])) == 2:
+                buffer = ""
+            elif len(str(unit.location[0])) == 2 or len(str(unit.location[1])) == 2:
+                buffer = " "
+            else:
+                buffer = "  "
+            if type(unit) == Villager:
+                entries.append(f"| villager{i}     {unit.location}  " + buffer + "|")
+            elif type(unit) == Soldier:
+                entries.append(f"| Soldier{i}     {unit.location}  " + buffer + "|")
+        border = "-" * len(max(entries, key=len))
+        index = 0
+        for i, entry in enumerate(reversed(entries)):
+            screen.addstr(COMMANDLINE_Y - i, UNIT_INFO_Y, f"{entry}")
+            index = i
+        screen.addstr(COMMANDLINE_Y + 1, UNIT_INFO_Y, f"{border}")
+        screen.addstr(COMMANDLINE_Y - 1 - index, UNIT_INFO_Y, f"{border}")
+        
 
 class RemoteCommander(CommandLine):
     def update(self, k):
