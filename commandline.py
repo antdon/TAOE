@@ -48,7 +48,7 @@ class CommandLine:
                 if state != None:
                     try:
                         y,x = int(words[2], 16), int(words[3], 16)
-                    except ValueError:
+                    except (ValueError, IndexError):
                         self.player.debug = f"Invalid coordinates! (Remember row first)"
                         return
                 cost = state.get_cost()
