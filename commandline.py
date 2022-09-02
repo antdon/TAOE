@@ -184,17 +184,23 @@ class CommandLine:
     @classmethod
     def ls(self, game, units, screen):
         entries = []
-        for i, unit in enumerate(units):
+        for i, unit in enumerate([soldier for soldier in units if type(soldier) == Soldier]):
+            if len(str(unit.location[0])) == 2 and len(str(unit.location[1])) == 2:
+                buffer = " "
+            elif len(str(unit.location[0])) == 2 or len(str(unit.location[1])) == 2:
+                buffer = "  "
+            else:
+                buffer = "   "
+            entries.append(f"| soldier{i}     {unit.location}  " + buffer + "|")
+        for i, unit in enumerate([villager for villager in units if type(villager) == Villager]):
             if len(str(unit.location[0])) == 2 and len(str(unit.location[1])) == 2:
                 buffer = ""
             elif len(str(unit.location[0])) == 2 or len(str(unit.location[1])) == 2:
                 buffer = " "
             else:
                 buffer = "  "
-            if type(unit) == Villager:
-                entries.append(f"| villager{i}     {unit.location}  " + buffer + "|")
-            elif type(unit) == Soldier:
-                entries.append(f"| Soldier{i}     {unit.location}  " + buffer + "|")
+            entries.append(f"| villager{i}     {unit.location}  " + buffer + "|")
+
         border = "-" * len(max(entries, key=len))
         index = 0
         for i, entry in enumerate(reversed(entries)):
