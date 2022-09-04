@@ -81,6 +81,7 @@ class Player(Chieftain):
         f"Time: {time // 1000}       ")
         self.screen.addstr(COMMANDLINE_Y - 1,0, f" " * 100)
         self.screen.addstr(COMMANDLINE_Y - 1,0, f"{self.debug} ")
+        self.commander.ls(self.game, self.units, self.screen)
 
 class NPC(Chieftain):
     def __init__(self, number =1) -> None:

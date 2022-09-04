@@ -4,6 +4,8 @@ import socket
 from structure import LumberCamp, Mine, Mill, Barracks
 import time
 
+from unit import Archer, Cavalry, Soldier, Villager
+
 class CommandLine:
     def __init__(self, screen, player):
         self.command = ""
@@ -178,6 +180,56 @@ class CommandLine:
     def draw(self):
         self.player.screen.addstr(COMMANDLINE_Y, 0, " "*100)
         self.player.screen.addstr(COMMANDLINE_Y, 0, self.command)
+
+    def ls(self, game, units, screen):
+        entries = []
+        def setBuffer(unit):
+            return " " * (8 - len(str(unit.location[0])) - len(str(unit.location[1])))
+
+        def setState(unit):
+            state = "         "
+            if type(unit) == Villager:
+                if unit.state_action == VillagerStates.BUILD:
+                    state = "building "
+                elif unit.state_action == VillagerStates.GATHER:
+                    state = "gathering"
+                elif unit.state_action == VillagerStates.IDLE:
+                    state = "idling   "
+            else:
+                if unit.state_action == ArmyStates.ATTACK:
+                    state = "attacking"
+                elif unit.state_action == ArmyStates.IDLE:
+                    state = "idling   "
+                elif unit.state_action == ArmyStates.MOVE:
+                    state = "moving   "
+            return state
+
+        for i, unit in enumerate([soldier for soldier in units if type(soldier) == Soldier]):
+            buffer = setBuffer(unit)
+            state  = setState(unit)
+            entries.append(f"| soldier{i}  {state} {unit.location}  " + buffer + "|")
+        for i, unit in enumerate([villager for villager in units if type(villager) == Villager]):
+            buffer = setBuffer(unit)
+            state  = setState(unit)
+            entries.append(f"| villager{i} {state} {unit.location}  " + buffer + "|")
+        for i, unit in enumerate([cavalry for cavalry in units if type(cavalry) == Cavalry]):
+            buffer = setBuffer(unit)
+            state = setState(unit)
+            entries.append(f"| cavalry{i}  {state} {unit.location}  " + buffer + "|")
+        for i, unit in enumerate([archer for archer in units if type(archer) == Archer]):
+            buffer = setBuffer(unit)
+            state = setState(unit)
+            entries.append(f"| archer{i}   {state} {unit.location}  " + buffer + "|")
+
+        border = "-" * len(max(entries, key=len))
+        index = 0
+        for i, entry in enumerate(reversed(entries)):
+            screen.addstr(COMMANDLINE_Y - i, UNIT_INFO_X, entry)
+            index = i
+        screen.addstr(COMMANDLINE_Y + 1, UNIT_INFO_X, border)
+        screen.addstr(COMMANDLINE_Y - 1 - index, UNIT_INFO_X, border)
+        screen.addstr(COMMANDLINE_Y - 2 - index, UNIT_INFO_X, " "*len(border))
+        
 
 class RemoteCommander(CommandLine):
     def update(self, k):
