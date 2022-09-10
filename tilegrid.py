@@ -2,6 +2,7 @@ from typing import List, Tuple
 import itertools
 from constants import *
 from incidental import Berry, Rocks, Tree, Vein
+from utils import InvalidCoordinateException
 
 class TileGrid:
     pass
@@ -35,7 +36,7 @@ class TileGrid():
         self.grid : dict[Tile] = {(y,x) : Tile((y,x), self) 
             for y,x in itertools.product(range(MAPHEIGHT), range(MAPWIDTH))}
 
-        #TODO: Make a bit more OO.
+        # TODO: Make a bit more OO.
         for locations,resource in [(BERRY_LOCATIONS, Berry), 
                 (TREE_LOCATIONS, Tree), (ROCK_LOCATIONS, Rocks), 
                 (VEIN_LOCATIONS, Vein)]:
@@ -44,6 +45,17 @@ class TileGrid():
                                             range(top, top+height)):
                     self.grid[(i, j)].content = resource((i,j))
                     self.grid[(MAPHEIGHT - i, MAPWIDTH - j)].content = resource((MAPHEIGHT - i,MAPWIDTH - j))
+
+    def __getitem__(self, coords: Tuple[int, int]):
+        y, x = coords
+        try:
+            if type(y) == str:
+                y = int(y, 16)
+            if type(x) == str:
+                x = int(x, 16)
+            return self.grid[(y, x)]
+        except (ValueError, KeyError):
+            raise InvalidCoordinateException
 
 
 

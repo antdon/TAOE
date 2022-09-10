@@ -16,6 +16,9 @@ class Chieftain():
         self.archers: List[Unit] = []
         self.cavalry: List[Unit] = []
 
+    def get_units_by_name(self, unit_type: str):
+        return [u for u in self.units if u.name == unit_type]
+
     def can_afford(self, cost):
         for resource, amount in cost.items():
             if self.structures[0].resources[int(resource.value)] < amount:
@@ -65,6 +68,8 @@ class Player(Chieftain):
         for structure in self.structures:
             if structure.name == word:
                 return structure
+        else:
+            raise InvalidBuildingTypeException
         
     def get_updates(self, time):
         # TODO: Sus

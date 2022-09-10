@@ -1,7 +1,7 @@
 from typing import List, Tuple
 from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
-from utils import InvalidCommandException
+from utils import InsufficientFundsException, InvalidCommandException, WrongBuildingException
 
 class Structure:
 
@@ -10,6 +10,14 @@ class Structure:
         self.player = player
         self.player.structures.append(self)
         self.player.game.all_structures.append(self)
+
+    
+    def execute_command(self, command, *args):
+        
+        if command == "create":
+            self.create(*args)
+            return
+        raise InvalidCommandException
 
     def get_neighbours(self):
         """ 
@@ -50,6 +58,8 @@ class Structure:
         #         "color": self.player.color}
 
 
+
+
 class Town_Hall(Structure):
     """
     A Town Hall is where a player should store their resources. 
@@ -77,14 +87,14 @@ class Town_Hall(Structure):
             self.resources[int(Resources.FOOD.value)] -= VILLAGER_COST[Resources.FOOD]
             self.player.units.append(Villager(self.location, self.player))
 
-    def create(self, arg):
-        if len(arg) > 1:
+    def create(self, *args):
+        if len(args) > 1:
             raise InvalidCommandException
-        arg = arg[0]
-        if arg == "villager":
+        arg = args[0]
+        if arg == Units.VILLAGER:
             self.create_villager()
-        elif arg in ["soldier", "archer", "cavalry"]:
-            self.player.debug = "You build those at a barracks."
+        elif arg in Units:
+            raise WrongBuildingException("barracks")
 
     @staticmethod
     def draw(screen, location, color) -> None:
@@ -111,38 +121,22 @@ class Barracks(Structure):
     def get_cost():
         return BARRACKS_COST
 
-    def create_soldier(self):
-        if self.player.can_afford(SOLDIER_COST):
-            self.player.loses_resources(SOLDIER_COST)
-            self.player.units.append(Soldier(self.location,self.player))
-        else:
-            self.player.debug = read_cost("Soldier", SOLDIER_COST)
-    
-    def create_archer(self):
-        if self.player.can_afford(ARCHER_COST):
-            self.player.loses_resources(ARCHER_COST)
-            self.player.units.append(Archer(self.location,self.player))
-        else:
-            self.player.debug = read_cost("Archer", ARCHER_COST)
-    
-    def create_cavalry(self):
-        if self.player.can_afford(CAVALRY_COST):
-            self.player.loses_resources(CAVALRY_COST)
-            self.player.units.append(Cavalry(self.location,self.player))
-        else:
-            self.player.debug = read_cost("Cavalry", CAVALRY_COST)
-
-    def create(self, arg):
-        # TODO: Leverage the enumerator
-        if len(arg) > 1:
+    def create(self, *args):
+        if len(args) > 1:
             raise InvalidCommandException
-        arg = arg[0]
-        if arg == "soldier":
-            self.create_soldier()
-        elif arg == "archer":
-            self.create_archer()
-        elif arg == "cavalry":
-            self.create_cavalry()
+        arg = args[0]
+        for unit in [Soldier, Archer, Cavalry]:
+            if unit.enum_value == arg:
+                if self.player.can_afford(unit.cost):
+                    self.player.loses_resources(unit.cost)
+                    self.player.units.append(unit(self.location, self.player))
+                else:
+                    raise InsufficientFundsException(read_cost(unit.name, unit.cost))
+                break
+        else:
+            if arg == Units.VILLAGER:
+                raise WrongBuildingException("town hall")
+
 
     @staticmethod
     def draw(screen, location, color):

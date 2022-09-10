@@ -1,9 +1,9 @@
 import time
 from typing import List
-from incidental import Tree
 from tilegrid import TileGrid
 import random
 from constants import *
+from utils import *
 
 class Unit:
     enum_value = -1
@@ -70,6 +70,7 @@ class Unit:
 class Villager(Unit):
     enum_value = Units.VILLAGER
     name = "villager"
+    cost = VILLAGER_COST
 
     def __init__(self, location, player, capacity:int = VILLAGER_CAPACITY, 
                 move_speed: int = 500) -> None:
@@ -86,6 +87,29 @@ class Villager(Unit):
         self.target_incidental = None
         self.debug_info = ""
         self.player.villagers.append(self)
+
+    def build(self, TargetBuilding, *args):
+        t=  (args[0], args[1])
+        y,x = self.player.game.grid[t].coordinate
+
+        cost = TargetBuilding.get_cost()
+        if self.player.can_afford(cost):
+            self.set_desired_square((y,x))
+            self.set_state(VillagerStates.BUILD, TargetBuilding)
+            self.gather_square = None
+        else:
+            raise InsufficientFundsException(read_cost("building", cost))
+
+    def execute_command(self, command, *args):
+        if command not in ["gather", "build"]:
+            raise InvalidCommandException
+        if command == "gather":
+            TargetResource = args[0]
+            self.set_state(VillagerStates.GATHER, TargetResource)
+            self.update_target_square()
+        if command == "build":
+            TargetBuilding = args[0]
+            self.build(TargetBuilding, *args[1:])
 
     def stop(self):
         self.state_action = VillagerStates.IDLE
@@ -176,6 +200,7 @@ class Villager(Unit):
         # self.debug = "b"
         if self.location == self.gather_square and not self.needs_delivery(
                                 self.state_target):
+            
             self.gather(self.target_incidental, delta_time)
         else:
             self.time_on_task += delta_time
@@ -198,8 +223,9 @@ class Villager(Unit):
     def needs_delivery(self, resource: Resources):
         if resource == None:
             exit(f"{self.debug}")
-        return (any([x for i,x in enumerate(self.resources) if i != int(resource.value)]) 
-            or self.capacity_reached())
+        return (any([x for i,x in enumerate(self.resources) if 
+            i != int(resource.value)]) or self.capacity_reached())
+        
 
     def nearest_gatherable(self, resource: Resources):
         """
@@ -258,6 +284,21 @@ class Army(Unit):
     def stop(self):
         self.state_action = ArmyStates.IDLE
         self.state_target = None
+
+    def move(self, *args):
+        # TODO: Make this set the desired square to a square rather than a coord
+        y,x = self.player.game.grid[(args[0], args[1])].coordinate
+        self.state_action = ArmyStates.MOVE
+        self.state_target = None
+        self.set_desired_square((y,x))
+
+    def execute_command(self, command, *args):
+        if command not in ["attack", "move"]:
+            raise InvalidCommandException
+        if command == "attack":
+            self.set_attacking(args[0])
+        if command == "move":
+            self.move(*args)
 
     def nearest_attackable(self, target=None):
         squares = []
@@ -368,6 +409,7 @@ class Army(Unit):
 class Soldier(Army):
     enum_value = Units.SOLDIER
     name = "soldier"
+    cost = SOLDIER_COST
 
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "S")
@@ -390,6 +432,7 @@ class Soldier(Army):
 class Archer(Army):
     enum_value = Units.ARCHER
     name = "archer"
+    cost = ARCHER_COST
 
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "A")
@@ -413,6 +456,7 @@ class Archer(Army):
 class Cavalry(Army):
     enum_value = Units.CAVALRY
     name = "cavalry"
+    cost = CAVALRY_COST
 
     def __init__(self, location, player, level: int =1) -> None:
         super().__init__(location, player, "C")
