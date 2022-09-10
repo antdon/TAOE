@@ -182,11 +182,7 @@ class CommandLine:
         self.player.screen.addstr(COMMANDLINE_Y, 0, self.command)
 
     def ls(self, game, units, screen):
-        entries = []
-        def setBuffer(unit):
-            return " " * (8 - len(str(unit.location[0])) - len(str(unit.location[1])))
-
-        def setState(unit):
+        def set_state(unit):
             state = "         "
             if type(unit) == Villager:
                 if unit.state_action == VillagerStates.BUILD:
@@ -204,23 +200,15 @@ class CommandLine:
                     state = "moving   "
             return state
 
-        for i, unit in enumerate([soldier for soldier in units if type(soldier) == Soldier]):
-            buffer = setBuffer(unit)
-            state  = setState(unit)
-            entries.append(f"| soldier{i}  {state} {unit.location}  " + buffer + "|")
-        for i, unit in enumerate([villager for villager in units if type(villager) == Villager]):
-            buffer = setBuffer(unit)
-            state  = setState(unit)
-            entries.append(f"| villager{i} {state} {unit.location}  " + buffer + "|")
-        for i, unit in enumerate([cavalry for cavalry in units if type(cavalry) == Cavalry]):
-            buffer = setBuffer(unit)
-            state = setState(unit)
-            entries.append(f"| cavalry{i}  {state} {unit.location}  " + buffer + "|")
-        for i, unit in enumerate([archer for archer in units if type(archer) == Archer]):
-            buffer = setBuffer(unit)
-            state = setState(unit)
-            entries.append(f"| archer{i}   {state} {unit.location}  " + buffer + "|")
 
+        entries = []
+        
+        for unit_list in [self.player.soldiers, self.player.villagers, self.player.cavalry, self.player.archers]:
+            for i, unit in enumerate(unit_list):
+                state = set_state(unit)
+                loc = "({:02x}, {:02x})".format(*unit.location)
+                entries.append(f"| {(unit.name+str(i)).ljust(9)} {state} {str(loc).ljust(12)}|")
+        
         border = "-" * len(max(entries, key=len))
         index = 0
         for i, entry in enumerate(reversed(entries)):

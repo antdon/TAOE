@@ -69,6 +69,7 @@ class Unit:
 
 class Villager(Unit):
     enum_value = Units.VILLAGER
+    name = "villager"
 
     def __init__(self, location, player, capacity:int = None, 
                 move_speed: int = 500) -> None:
@@ -368,6 +369,7 @@ class Army(Unit):
 
 class Soldier(Army):
     enum_value = Units.SOLDIER
+    name = "soldier"
 
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "S")
@@ -389,6 +391,7 @@ class Soldier(Army):
 
 class Archer(Army):
     enum_value = Units.ARCHER
+    name = "archer"
 
     def __init__(self, location, player, level: int = 1) -> None:
         super().__init__(location, player, "A")
@@ -411,6 +414,7 @@ class Archer(Army):
 
 class Cavalry(Army):
     enum_value = Units.CAVALRY
+    name = "cavalry"
 
     def __init__(self, location, player, level: int =1) -> None:
         super().__init__(location, player, "C")
