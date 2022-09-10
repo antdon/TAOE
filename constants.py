@@ -20,10 +20,7 @@ MAPHEIGHT = 40
 COMMANDLINE_Y = MAPHEIGHT + 5
 UNIT_INFO_X = MAPWIDTH + 10
 
-VILLAGER_STATS = {
-    "health": 10,
-    "capacity": 10
-}
+VILLAGER_CAPACITY = 10
 
 SOLDIER_SPEED = 300
 ARCHER_SPEED = 750
@@ -36,22 +33,25 @@ class Resources(Enum):
     STONE = 2
     GOLD = 3
 
-resource_names = {
-    Resources.FOOD: "Food",
-    Resources.WOOD: "Wood",
-    Resources.STONE: "Stone",
-    Resources.GOLD: "Gold",
-}
+    def __str__(self):
+        return ["Food", "Wood", "Stone", "Gold"][self.value]
 
+# TODO: __str__ is an anti-pattern and could be done better.
 class VillagerStates(Enum):
     IDLE = 0
     GATHER = 1
     BUILD = 2
+
+    def __str__(self):
+        return ["idling", "gathering","building"][self.value]
     
 class ArmyStates(Enum):
     IDLE = 0
     MOVE = 1
     ATTACK = 2
+
+    def __str__(self):
+        return ["idling", "moving","attacking"][self.value]
 
 class Buildings(Enum):
     TOWNHALL = 0
@@ -68,6 +68,9 @@ class Units(Enum):
     ARCHER = 2
     CAVALRY = 3
 
+    def __str__(self):
+        return ["villager", "soldier", "archer", "cavalry"][int(self.value)]
+
 class Terminal(Enum):
     LOCAL = 0
     CLIENT = 1
@@ -78,9 +81,9 @@ def read_cost(name, cost):
     s = f"A {name} costs "
     cost_list = list(cost.items())
     if len(cost_list) == 1:
-        s += f"{cost_list[0][1]} {resource_names[cost_list[0][0]]}"
+        s += f"{cost_list[0][1]} {str(cost_list[0][0])}"
     else:
-        s += f'{", ".join(f"{v} {resource_names[k]}" for k,v in cost_list[:-1])} and {cost_list[-1][1]} {resource_names[cost_list[-1][0]]}'
+        s += f'{", ".join(f"{v} {str(k)}" for k,v in cost_list[:-1])} and {cost_list[-1][1]} {str(cost_list[-1][0])}'
     s += " to build."
     return s
 

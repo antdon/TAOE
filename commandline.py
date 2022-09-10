@@ -5,6 +5,7 @@ from structure import LumberCamp, Mine, Mill, Barracks
 import time
 
 from unit import Archer, Cavalry, Soldier, Villager
+from utils import InvalidCommandException
 
 class CommandLine:
     def __init__(self, screen, player):
@@ -69,16 +70,15 @@ class CommandLine:
                 except:
                     if file[0][len(unit_type):] == "s":
                         if file[1] == "attack":
+                            for unit_type in Units:
+                                if str(unit_type) == words[1]:
+                                    target = unit_type
+                                    break
+                            else:
+                                self.player.debug = "Don't understand what the"\
+                                                    " target is."
                             for u in unit_container:
-                                # TODO: Delint
-                                if words[1] == "soldier":
-                                    u.set_attacking(Units.SOLDIER)
-                                if words[1] == "archer":
-                                    u.set_attacking(Units.ARCHER)
-                                if words[1] == "cavalry":
-                                    u.set_attacking(Units.CAVALRY)
-                                if words[1] == "villager":
-                                    u.set_attacking(Units.VILLAGER)
+                                u.set_attacking(target)
                             return
                     else:
                         self.player.debug = f"Error! {file[0]} is not a valid {unit_type}"
@@ -95,45 +95,28 @@ class CommandLine:
                     chosen_unit.state_target = None
                     chosen_unit.set_desired_square((y,x))
                     return
-                # TODO: Delint
                 if file[1] == "attack":
-                    if words[1] == "soldier":
-                        chosen_unit.set_attacking(Units.SOLDIER)
+                    for unit_type in Units:
+                        if str(unit_type) == words[1]:
+                            target = unit_type
+                            break
+                    else:
+                        self.player.debug = "Don't understand what the"\
+                                            " target is."
                         return
-                    if words[1] == "archer":
-                        chosen_unit.set_attacking(Units.ARCHER)
-                        return
-                    if words[1] == "cavalry":
-                        chosen_unit.set_attacking(Units.CAVALRY)
-                        return
-                    if words[1] == "villager":
-                        chosen_unit.set_attacking(Units.VILLAGER)
-                        return
-        # TODO: Issue 8.
-        # TODO: Delint
-        if command == "townhall/create villager":
-            self.player.structures[0].create_villager()
-            return
-        elif command == "barracks/create soldier":
-            self.player.get_barracks().create_soldier()
-            return
-        elif command == "barracks/create archer":
-            self.player.debug = "Hello"
-            self.player.get_barracks().create_archer()
-            return
-        elif command == "barracks/create cavalry":
-            self.player.get_barracks().create_cavalry()
-            return
-        elif command == "townhall/create soldier":
-            self.player.debug = "You build those at a barracks."
-            return
-        elif command == "townhall/create archer":
-            self.player.debug = "You build those at a barracks."
-            return
-        elif command == "townhall/create cavalry":
-            self.player.debug = "You build those at a barracks."
-            return
-        
+                    chosen_unit.set_attacking(target)
+                    return
+        if file[0] in ["townhall", "barracks"]:
+            if file[1] == "create" and len(file) == 2:
+                try:
+                    self.player.get_structure(file[0]).create(words[1:])
+                    return
+                except InvalidCommandException:
+                    pass
+                except AttributeError:
+                    self.player.debug = "Either the building doesn't exist " \
+                                        "or can't do that."
+                    return
         self.player.debug = "Sorry, I don't understand."
 
     def set_history_pointer(self, target: int):
@@ -181,33 +164,16 @@ class CommandLine:
         self.player.screen.addstr(COMMANDLINE_Y, 0, " "*100)
         self.player.screen.addstr(COMMANDLINE_Y, 0, self.command)
 
-    def ls(self, game, units, screen):
-        def set_state(unit):
-            state = "         "
-            if type(unit) == Villager:
-                if unit.state_action == VillagerStates.BUILD:
-                    state = "building "
-                elif unit.state_action == VillagerStates.GATHER:
-                    state = "gathering"
-                elif unit.state_action == VillagerStates.IDLE:
-                    state = "idling   "
-            else:
-                if unit.state_action == ArmyStates.ATTACK:
-                    state = "attacking"
-                elif unit.state_action == ArmyStates.IDLE:
-                    state = "idling   "
-                elif unit.state_action == ArmyStates.MOVE:
-                    state = "moving   "
-            return state
-
-
+    def ls(self, screen):
         entries = []
         
-        for unit_list in [self.player.soldiers, self.player.villagers, self.player.cavalry, self.player.archers]:
+        for unit_list in [self.player.soldiers, self.player.villagers, 
+                        self.player.cavalry, self.player.archers]:
             for i, unit in enumerate(unit_list):
-                state = set_state(unit)
-                loc = "({:02x}, {:02x})".format(*unit.location)
-                entries.append(f"| {(unit.name+str(i)).ljust(9)} {state} {str(loc).ljust(12)}|")
+                name = (unit.name+str(i)).ljust(9)
+                state = str(unit.state_action).ljust(9)
+                loc = "({:02x}, {:02x})".format(*unit.location).ljust(12)
+                entries.append(f"| {name} {state} {loc}|")
         
         border = "-" * len(max(entries, key=len))
         index = 0

@@ -71,10 +71,8 @@ class Villager(Unit):
     enum_value = Units.VILLAGER
     name = "villager"
 
-    def __init__(self, location, player, capacity:int = None, 
+    def __init__(self, location, player, capacity:int = VILLAGER_CAPACITY, 
                 move_speed: int = 500) -> None:
-        if capacity == None:
-            capacity = VILLAGER_STATS["capacity"]
         super().__init__(location, player, "V")
         self.capacity = capacity
         self.resources = [0,0,0,0]

@@ -61,11 +61,11 @@ class Player(Chieftain):
         self.random_state = random.getstate()
         return retval
 
-    def get_barracks(self):
+    def get_structure(self, word):
         for structure in self.structures:
-            if type(structure) == Barracks:
+            if structure.name == word:
                 return structure
-
+        
     def get_updates(self, time):
         # TODO: Sus
         k = self.screen.getch()
@@ -73,15 +73,15 @@ class Player(Chieftain):
             self.commander.update(k)
 
         #TODO: Extra sus
-        self.screen.addstr(0,0, 
-        f"Wood: {self.structures[0].resources[int(Resources.WOOD.value)]}    " + 
-        f"Food: {self.structures[0].resources[int(Resources.FOOD.value)]}      " +
-        f"Gold: {self.structures[0].resources[int(Resources.GOLD.value)]}      " + 
-        f"Stone: {self.structures[0].resources[int(Resources.STONE.value)]}      " +
-        f"Time: {time // 1000}       ")
+        status_string = ""
+        for resource in Resources:
+            count = str(self.structures[0].resources[int(resource.value)])
+            status_string += f"{str(resource)}: {count.ljust(10)}"
+        status_string += f"Time: {time // 1000}".ljust(10)
+        self.screen.addstr(0,0, status_string)
         self.screen.addstr(COMMANDLINE_Y - 1,0, f" " * 100)
         self.screen.addstr(COMMANDLINE_Y - 1,0, f"{self.debug} ")
-        self.commander.ls(self.game, self.units, self.screen)
+        self.commander.ls(self.screen)
 
 class NPC(Chieftain):
     def __init__(self, number =1) -> None:

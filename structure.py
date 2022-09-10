@@ -1,6 +1,7 @@
 from typing import List, Tuple
 from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
+from utils import InvalidCommandException
 
 class Structure:
 
@@ -57,6 +58,7 @@ class Town_Hall(Structure):
     resources and can store infinite of all of them
     """
     enum_value = Buildings.TOWNHALL
+    name = "townhall"
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
@@ -75,6 +77,15 @@ class Town_Hall(Structure):
             self.resources[int(Resources.FOOD.value)] -= VILLAGER_COST[Resources.FOOD]
             self.player.units.append(Villager(self.location, self.player))
 
+    def create(self, arg):
+        if len(arg) > 1:
+            raise InvalidCommandException
+        arg = arg[0]
+        if arg == "villager":
+            self.create_villager()
+        elif arg in ["soldier", "archer", "cavalry"]:
+            self.player.debug = "You build those at a barracks."
+
     @staticmethod
     def draw(screen, location, color) -> None:
         screen.addstr(location[0]+4, location[1] + 2, "      ", color)
@@ -85,9 +96,11 @@ class Town_Hall(Structure):
 
 class House(Structure):
     enum_value = Buildings.HOUSE
+    name = "house"
 
 class Barracks(Structure):
     enum_value = Buildings.BARRACKS
+    name = "barracks"
 
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
@@ -119,6 +132,18 @@ class Barracks(Structure):
         else:
             self.player.debug = read_cost("Cavalry", CAVALRY_COST)
 
+    def create(self, arg):
+        # TODO: Leverage the enumerator
+        if len(arg) > 1:
+            raise InvalidCommandException
+        arg = arg[0]
+        if arg == "soldier":
+            self.create_soldier()
+        elif arg == "archer":
+            self.create_archer()
+        elif arg == "cavalry":
+            self.create_cavalry()
+
     @staticmethod
     def draw(screen, location, color):
         screen.addstr(location[0]+4, location[1] + 2, "Barr", color)
@@ -138,6 +163,7 @@ class Collector(Structure):
 
 class Mine(Collector):
     enum_value = Buildings.MINE
+    name = "mine"
 
     @staticmethod
     def get_next_state():
@@ -154,6 +180,7 @@ class Mine(Collector):
 
 class Mill(Collector):
     enum_value = Buildings.MILL
+    name = "mill"
 
     @staticmethod
     def get_next_state():
@@ -169,6 +196,7 @@ class Mill(Collector):
 
 class LumberCamp(Collector):
     enum_value = Buildings.LUMBERCAMP
+    name = "lumbercamp"
     
     @staticmethod
     def get_next_state():
@@ -194,6 +222,7 @@ class Build_Site(Structure):
 
 class Quarry(Collector):
     enum_value = Buildings.LUMBERCAMP
+    name = "quarry"
 
     @staticmethod
     def get_next_state():
