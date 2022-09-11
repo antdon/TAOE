@@ -19,12 +19,6 @@ class CommandLine:
     def set_opponent_boxes(self, opponent_boxes):
         self.opponent_boxes = opponent_boxes
 
-    def state_lookup(self, word: str):
-        return {"berry": Resources.FOOD, "food": Resources.FOOD,
-                "gold": Resources.GOLD, "wood": Resources.WOOD,
-                "stone": Resources.STONE, "mine": Mine, "mill": Mill, 
-                "lumbercamp": LumberCamp, "barracks": Barracks}.get(word, None)
-
     # TODO: Probably need to move the enums closer to the actual object declarations.
     @staticmethod
     def parse_arg(word: str):
