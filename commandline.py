@@ -54,6 +54,7 @@ class CommandLine:
                         raise InvalidUnitTypeException(word, unit)
         if word in ["townhall", "barracks"]:
             return [self.player.get_structure(word)]
+        raise InvalidCommandException
 
 
     def interpret_command(self, command):
@@ -65,10 +66,7 @@ class CommandLine:
             args = list(map(self.parse_arg, words[1:]))
             for u in chosen_units:
                 u.execute_command(file[1], *args)
-        except (InsufficientFundsException, InvalidUnitArgumentException, 
-            InvalidCoordinateException, InvalidUnitTypeException,
-            InvalidBuildingTypeException, WrongBuildingException, 
-            InvalidCommandException) as e:
+        except InvalidCommandException as e:
             self.player.debug = e.message
             return
 
