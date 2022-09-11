@@ -4,6 +4,7 @@ from constants import *
 from utils import InsufficientFundsException, InvalidCommandException, WrongBuildingException
 
 class Structure:
+    buildable_units = []
 
     def __init__(self, location, player) -> None:
         self.location = location
@@ -11,9 +12,27 @@ class Structure:
         self.player.structures.append(self)
         self.player.game.all_structures.append(self)
 
+    def create(self, alt_building, *args):
+        if len(args) > 1:
+            raise InvalidCommandException
+        arg = args[0]
+        for unit in self.buildable_units:
+            if unit.enum_value == arg:
+                if self.player.can_afford(unit.cost):
+                    self.player.loses_resources(unit.cost)
+                    self.player.units.append(unit(self.location, self.player))
+                else:
+                    raise InsufficientFundsException(read_cost(unit.name, 
+                                                     unit.cost, "create"))
+                break
+        else:
+            if arg in Units:
+                # TODO: Instead of passing this as a parameter, just look 
+                # at the unit to see where it can be built.
+                raise WrongBuildingException(alt_building)
+
     
     def execute_command(self, command, *args):
-        
         if command == "create":
             self.create(*args)
             return
@@ -69,6 +88,7 @@ class Town_Hall(Structure):
     """
     enum_value = Buildings.TOWNHALL
     name = "townhall"
+    buildable_units = [Villager]
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
@@ -79,22 +99,8 @@ class Town_Hall(Structure):
     def can_receive(self, resource):
         return True
 
-    def create_villager(self):
-        # TODO: Build a function that compares cost dictionary.
-        if self.resources[int(Resources.FOOD.value)] < VILLAGER_COST[Resources.FOOD]:
-            self.player.debug = f"A villager costs {VILLAGER_COST[Resources.FOOD]} food to make"
-        else:
-            self.resources[int(Resources.FOOD.value)] -= VILLAGER_COST[Resources.FOOD]
-            self.player.units.append(Villager(self.location, self.player))
-
     def create(self, *args):
-        if len(args) > 1:
-            raise InvalidCommandException
-        arg = args[0]
-        if arg == Units.VILLAGER:
-            self.create_villager()
-        elif arg in Units:
-            raise WrongBuildingException("barracks")
+        super().create("barracks", *args)
 
     @staticmethod
     def draw(screen, location, color) -> None:
@@ -111,6 +117,7 @@ class House(Structure):
 class Barracks(Structure):
     enum_value = Buildings.BARRACKS
     name = "barracks"
+    buildable_units = [Soldier, Archer, Cavalry]
 
     def __init__(self, location, player) -> None:
         self.size = (2, 4)
@@ -122,20 +129,7 @@ class Barracks(Structure):
         return BARRACKS_COST
 
     def create(self, *args):
-        if len(args) > 1:
-            raise InvalidCommandException
-        arg = args[0]
-        for unit in [Soldier, Archer, Cavalry]:
-            if unit.enum_value == arg:
-                if self.player.can_afford(unit.cost):
-                    self.player.loses_resources(unit.cost)
-                    self.player.units.append(unit(self.location, self.player))
-                else:
-                    raise InsufficientFundsException(read_cost(unit.name, unit.cost))
-                break
-        else:
-            if arg == Units.VILLAGER:
-                raise WrongBuildingException("town hall")
+        super().create("townhall", *args)
 
 
     @staticmethod

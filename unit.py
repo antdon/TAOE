@@ -98,7 +98,7 @@ class Villager(Unit):
             self.set_state(VillagerStates.BUILD, TargetBuilding)
             self.gather_square = None
         else:
-            raise InsufficientFundsException(read_cost("building", cost))
+            raise InsufficientFundsException(read_cost("building", cost, "build"))
 
     def execute_command(self, command, *args):
         if command not in ["gather", "build"]:

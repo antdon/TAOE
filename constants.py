@@ -77,14 +77,15 @@ class Terminal(Enum):
     SERVER = 2
 
 #TODO: Refactor the other alert messages to read like this.
-def read_cost(name, cost):
+#TODO: Tidy this up so there's just one class param.
+def read_cost(name, cost, verb: str):
     s = f"A {name} costs "
     cost_list = list(cost.items())
     if len(cost_list) == 1:
         s += f"{cost_list[0][1]} {str(cost_list[0][0])}"
     else:
         s += f'{", ".join(f"{v} {str(k)}" for k,v in cost_list[:-1])} and {cost_list[-1][1]} {str(cost_list[-1][0])}'
-    s += " to build."
+    s += f" to {verb}."
     return s
 
 VILLAGER_COST = {Resources.FOOD: 40}

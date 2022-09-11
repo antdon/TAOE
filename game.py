@@ -104,6 +104,4 @@ class Game:
 
             if self.time > 100000:
                 self.enemy.set_attacks()
-        # self.players[0].debug = f"{[p.units for p in self.players]} {self.all_units}"
 
-        
