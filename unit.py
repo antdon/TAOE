@@ -17,6 +17,7 @@ class Unit:
         self.attack_range = 1
         self.attack_speed = 300
         self.dead = False
+        self.grid = self.player.game.grid.grid
         self.player.game.all_units.append(self)
 
     def die(self):
@@ -90,8 +91,10 @@ class Villager(Unit):
 
     def build(self, TargetBuilding, *args):
         t=  (args[0], args[1])
-        y,x = self.player.game.grid[t].coordinate
-
+        try:
+            y,x = self.grid[t].coordinate
+        except KeyError:
+            raise InvalidCoordinateException
         cost = TargetBuilding.get_cost()
         if self.player.can_afford(cost):
             self.set_desired_square((y,x))
@@ -117,10 +120,10 @@ class Villager(Unit):
 
     def set_gather_square(self, square, incidental, resource):
         if self.gather_square:
-            self.player.game.grid.grid[self.gather_square].users -= {self}
+            self.grid[self.gather_square].users -= {self}
         self.gather_square = square
         self.target_incidental = incidental
-        self.player.game.grid.grid[square].users |= {self}
+        self.grid[square].users |= {self}
         self.player.debug = f"{square} {incidental} {resource}"
 
     def set_deliver_square(self, square):
@@ -153,7 +156,7 @@ class Villager(Unit):
     def drop_if_possible(self):
         # If next to a building that can take the carried resource, drop the resource.
         for structure in self.player.structures:
-            if self.player.game.grid.grid[self.location] in structure.get_neighbours():
+            if self.grid[self.location] in structure.get_neighbours():
                 for i,x in enumerate(self.resources):
                     if structure.can_receive(Resources(i)):
                         self.player.structures[0].resources[i] += x
@@ -287,7 +290,10 @@ class Army(Unit):
 
     def move(self, *args):
         # TODO: Make this set the desired square to a square rather than a coord
-        y,x = self.player.game.grid[(args[0], args[1])].coordinate
+        try:
+            y,x = self.grid[(args[0], args[1])].coordinate
+        except KeyError:
+            raise InvalidCoordinateException
         self.state_action = ArmyStates.MOVE
         self.state_target = None
         self.set_desired_square((y,x))
@@ -311,14 +317,14 @@ class Army(Unit):
         if target != None:
             for unit in self.player.enemy.units:
                 if type(unit) == class_dict[target]:
-                    squares += self.player.game.grid.grid[unit.location].get_neighbours()
+                    squares += self.grid[unit.location].get_neighbours()
         else:
             for unit in self.player.enemy.units:
-                squares += self.player.game.grid.grid[unit.location].get_neighbours()
+                squares += self.grid[unit.location].get_neighbours()
         return min(squares, key=lambda square: square.get_dist(self.location)).coordinate
 
     def is_attackable_unit(self, unit):
-        return self.player.game.grid.grid[unit.location].get_dist(self.location) <= self.attack_range
+        return self.grid[unit.location].get_dist(self.location) <= self.attack_range
 
     def random_attack_result(self):
         random.setstate(self.random_state)

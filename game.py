@@ -92,6 +92,8 @@ class Game:
 
         self.all_units = [u for u in self.all_units if not u.dead]
 
+        # TODO: This is a hold-over from an attempt to serialise the data
+        # rather than the commands. It should be deleted.
         self.screen.draw_state(self.get_state())
 
         for unit in self.all_units:

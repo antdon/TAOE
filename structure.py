@@ -1,7 +1,7 @@
 from typing import List, Tuple
 from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
-from utils import InsufficientFundsException, InvalidCommandException, WrongBuildingException
+from utils import InsufficientFundsException, InvalidCommandException, InvalidCoordinateException, InvalidResourceTypeException, WrongBuildingException
 
 class Structure:
     buildable_units = []
@@ -11,6 +11,8 @@ class Structure:
         self.player = player
         self.player.structures.append(self)
         self.player.game.all_structures.append(self)
+        self.grid = self.player.game.grid.grid
+        self.rallypoint = None
 
     def create(self, alt_building, *args):
         if len(args) > 1:
@@ -20,7 +22,9 @@ class Structure:
             if unit.enum_value == arg:
                 if self.player.can_afford(unit.cost):
                     self.player.loses_resources(unit.cost)
-                    self.player.units.append(unit(self.location, self.player))
+                    new_unit = unit(self.location, self.player)
+                    self.player.units.append(new_unit)
+                    self.send_rally_command(new_unit)
                 else:
                     raise InsufficientFundsException(read_cost(unit.name, 
                                                      unit.cost, "create"))
@@ -31,10 +35,15 @@ class Structure:
                 # at the unit to see where it can be built.
                 raise WrongBuildingException(alt_building)
 
+    def set_rallypoint(self, *args):
+        pass
     
     def execute_command(self, command, *args):
         if command == "create":
             self.create(*args)
+            return
+        elif command == "rallypoint":
+            self.set_rallypoint(*args)
             return
         raise InvalidCommandException
 
@@ -51,7 +60,7 @@ class Structure:
             squares.append((self.location[0]-1, x))
             squares.append((self.location[0]+self.size[0], x))
         # exit('hello')
-        return [self.player.game.grid.grid.get(s, None) for s in squares if s]
+        return [self.grid.get(s, None) for s in squares if s]
         
     @staticmethod
     def get_next_state():
@@ -96,6 +105,17 @@ class Town_Hall(Structure):
         # [food, wood, stone, gold]
         self.resources = [200, 300, 100, 100]
 
+    def send_rally_command(self, unit):
+        if self.rallypoint:
+            unit.execute_command("gather", self.rallypoint)
+
+    def set_rallypoint(self, *args):
+        # raise Exception(args)
+        if args and type(args[0]) == Resources:
+            self.rallypoint = args[0]
+        else:
+            raise InvalidResourceTypeException
+
     def can_receive(self, resource):
         return True
 
@@ -107,8 +127,6 @@ class Town_Hall(Structure):
         screen.addstr(location[0]+4, location[1] + 2, "      ", color)
         screen.addstr(location[0]+5, location[1] + 2, "  TH  ", color)
         screen.addstr(location[0]+6, location[1] + 2, "      ", color)
-
-    
 
 class House(Structure):
     enum_value = Buildings.HOUSE
@@ -123,6 +141,18 @@ class Barracks(Structure):
         self.size = (2, 4)
         player.loses_resources(BARRACKS_COST)
         super().__init__(location, player)
+
+    def send_rally_command(self, unit):
+        if self.rallypoint:
+            unit.move(*self.rallypoint)
+    
+    def set_rallypoint(self, *args):
+        if args and len(args) >= 2:
+            t = (args[0], args[1])
+            try:
+                self.rallypoint = self.grid[t].coordinate
+            except KeyError:
+                raise InvalidCoordinateException
 
     @staticmethod
     def get_cost():
