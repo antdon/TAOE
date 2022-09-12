@@ -7,12 +7,12 @@ from utils import *
 
 class Unit:
     enum_value = -1
+    icon = "?"
 
-    def __init__(self, location, player, icon) -> None:
+    def __init__(self, location, player) -> None:
         self.prev_location = location
         self.location = location
         self.player = player
-        self.icon = icon
         self.time_on_task: int = 0 
         self.attack_range = 1
         self.attack_speed = 300
@@ -72,10 +72,11 @@ class Villager(Unit):
     enum_value = Units.VILLAGER
     name = "villager"
     cost = VILLAGER_COST
+    icon = "V"
 
     def __init__(self, location, player, capacity:int = VILLAGER_CAPACITY, 
                 move_speed: int = 500) -> None:
-        super().__init__(location, player, "V")
+        super().__init__(location, player)
         self.capacity = capacity
         self.resources = [0,0,0,0]
         self.gather_rate: int = 300
@@ -276,8 +277,8 @@ class Villager(Unit):
         
 class Army(Unit):
     enum_value = -1
-    def __init__(self, location, player, icon):
-        super().__init__(location, player, icon)
+    def __init__(self, location, player):
+        super().__init__(location, player)
         self.state_action = ArmyStates.IDLE
         self.state_target = None
 
@@ -416,9 +417,10 @@ class Soldier(Army):
     enum_value = Units.SOLDIER
     name = "soldier"
     cost = SOLDIER_COST
+    icon = "S"
 
     def __init__(self, location, player, level: int = 1) -> None:
-        super().__init__(location, player, "S")
+        super().__init__(location, player)
         self.level = level
         self.hit_rate: int = 500
         self.desired_square = None
@@ -439,9 +441,10 @@ class Archer(Army):
     enum_value = Units.ARCHER
     name = "archer"
     cost = ARCHER_COST
+    icon = "A"
 
     def __init__(self, location, player, level: int = 1) -> None:
-        super().__init__(location, player, "A")
+        super().__init__(location, player)
         self.level = level
         self.hit_rate: int = 500
         self.attack_range = 5
@@ -463,9 +466,10 @@ class Cavalry(Army):
     enum_value = Units.CAVALRY
     name = "cavalry"
     cost = CAVALRY_COST
+    icon = "C"
 
     def __init__(self, location, player, level: int =1) -> None:
-        super().__init__(location, player, "C")
+        super().__init__(location, player)
         self.level = level
         self.hit_rate: int = 500
         self.desired_square = None
