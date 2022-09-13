@@ -10,7 +10,6 @@ class Unit:
     icon = "?"
 
     def __init__(self, location, player) -> None:
-        self.prev_location = location
         self.location = location
         self.player = player
         self.time_on_task: int = 0 
@@ -33,16 +32,7 @@ class Unit:
 
     def die(self):
         self.player.units = [u for u in self.player.units if u != self]
-        try:
-            self.player.game.all_units.remove(self)
-        except:
-            pass
         self.dead = True
-        self.player.game.screen.screen.addstr(self.prev_location[0] + 4, 
-                self.prev_location[1] + 2, " ", curses.color_pair(BLANK_COLOR))
-        self.player.game.screen.screen.addstr(self.location[0] + 4, 
-                self.location[1] + 2, " ", curses.color_pair(BLANK_COLOR))
-        self.player.game.screen.screen.refresh()
         try:
             self.container.remove(self)
         except:
@@ -52,7 +42,6 @@ class Unit:
         self.desired_square = location
 
     def step(self, location):
-        self.prev_location = self.location
         direction = (location[0] - self.location[0], 
                      location[1] - self.location[1])
         direction = (direction[0]//abs(direction[0]) if direction[0] != 0 else 0,
@@ -61,21 +50,18 @@ class Unit:
                          self.location[1] + direction[1])
         
     @staticmethod
-    def draw(screen, prev_location, location, icon, color):
-        screen.addstr(prev_location[0] + 4, prev_location[1] + 2, 
-                        " ", curses.color_pair(BLANK_COLOR))
+    def draw(screen, location, icon, color):
         screen.addstr(location[0] + 4, location[1] + 2, icon, color)
     
     def draw_info(self):
-        return (type(self), self.prev_location, self.location, 
-                self.icon, self.player.color)
+        return (type(self), self.location, self.icon, self.player.color)
 
     def set_state(self, action, target):
         self.state_action = action
         self.state_target = target
 
     def spend_time_until(self, num_steps: int, action: Callable, 
-        until_state: Callable, rate: int):
+    until_state: Callable, rate: int):
         """
         Helper function for doing the given action until the unit reaches a
         desired state. When the unit does reach the desired state, the leftover
@@ -100,11 +86,9 @@ class Villager(Unit):
         self.resources = {resource: 0 for resource in Resources}
         self.gather_rate: int = 300
         self.move_speed = move_speed
-        self.deliver_square = None
-        self.set_state(VillagerStates.IDLE, None)
-        self.gathering_resource = None
-        self.gather_square = None
+        self.desired_square = None
         self.target_incidental = None
+        self.set_state(VillagerStates.IDLE, None)
         self.container = self.player.villagers
         self.container.append(self)
 
@@ -114,7 +98,6 @@ class Villager(Unit):
         if self.player.can_afford(cost):
             self.set_desired_square((y,x))
             self.set_state(VillagerStates.BUILD, TargetBuilding)
-            self.gather_square = None
         else:
             raise InsufficientFundsException(read_cost("building", cost, "build"))
 
@@ -126,28 +109,24 @@ class Villager(Unit):
             if type(TargetResource) != Resources:
                 raise InvalidResourceTypeException
             self.set_state(VillagerStates.GATHER, TargetResource)
-            self.update_target_square()
+            self.set_path()
         elif command == "build":
             TargetBuilding = args[0]
             self.build(TargetBuilding, *args[1:])
 
     # TODO: Tidy this up, it's villager only, and only on gather.
-    def update_target_square(self):
+    def set_path(self):
         if self.state_action == VillagerStates.GATHER:
             self.set_gather_square(*self.nearest_gatherable(self.state_target))
-            self.set_deliver_square(self.nearest_deliverable(self.state_target))
-
+            
     def set_gather_square(self, square, incidental, resource):
-        if self.gather_square:
-            self.grid[self.gather_square].users -= {self}
-        self.gather_square = square
+        if self.desired_square:
+            self.grid[self.desired_square].users -= {self}
+        self.desired_square = square
         self.target_incidental = incidental
         self.grid[square].users |= {self}
         self.player.debug = f"Villager is gathering {resource} at" \
             f" {self.grid[square]}"
-
-    def set_deliver_square(self, square):
-        self.deliver_square = square
 
     def capacity_reached(self):
         return sum(self.resources.values()) >= self.capacity
@@ -175,9 +154,9 @@ class Villager(Unit):
             if self.grid[self.location] in structure.get_neighbours():
                 for resource in Resources:
                     if structure.can_receive(resource):
-                        self.player.structures[0].resources[resource] += self.resources[resource]
+                        self.player.get_resources()[resource] += self.resources[resource]
                         self.resources[resource] = 0
-                        self.update_target_square()
+                        self.set_path()
 
     def carried_resource(self):
         for resource in Resources:
@@ -187,13 +166,10 @@ class Villager(Unit):
     def get_target_square(self):
         if self.state_action == VillagerStates.BUILD:
             return self.desired_square
-        if self.state_action == VillagerStates.GATHER and self.needs_delivery(
-            self.state_target):
-            return self.nearest_deliverable(self.carried_resource())
-        else:
-            if not self.gather_square:
-                self.update_target_square()
-            return self.gather_square
+        if self.state_action == VillagerStates.GATHER:
+            if self.needs_delivery(self.state_target):
+                return self.nearest_deliverable(self.carried_resource())
+            return self.desired_square
 
     def update_move(self, delta_time):
         """
@@ -201,20 +177,20 @@ class Villager(Unit):
         """
         if self.state_action == VillagerStates.IDLE:
             return
-        if self.state_action == VillagerStates.BUILD:
-            if self.location == self.desired_square:
+        if self.location == self.get_target_square():
+            if self.state_action == VillagerStates.BUILD:
                 Building = self.state_target
                 if self.player.can_afford(Building.get_cost()):
                     Building(self.location, self.player)
-                    for villager in self.player.villagers:
-                        villager.update_target_square()
                     self.set_state(*Building.get_next_state())
+                    for villager in self.player.villagers:
+                        villager.set_path()
                 else:
                     self.player.debug = "Not enough resources to build building."
                     self.set_state(VillagerStates.IDLE, None)
-        if self.location == self.gather_square and not self.needs_delivery(
-                                self.state_target):
-            self.gather(self.target_incidental, delta_time)
+            elif self.state_action == VillagerStates.GATHER:
+                if not self.needs_delivery(self.state_target):
+                    self.gather(self.target_incidental, delta_time)
         else:
             move_steps = self.accrue_time(delta_time, self.move_speed)
             target_location = self.get_target_square()
@@ -252,9 +228,8 @@ class Villager(Unit):
         for structure in self.player.structures:
             if structure.can_receive(resource):
                 squares += structure.get_neighbours()
-        if not squares:
-            exit(f"{self.player.structures}, {list(structure.location for structure in self.player.structures)} {squares}")
-        return min(squares, key = lambda square: square.get_dist(self.gather_square)).coordinate
+        # TODO: Handle errors here.
+        return min(squares, key = lambda square: square.get_dist(self.desired_square)).coordinate
         
 class Army(Unit):
     enum_value = -1
@@ -314,11 +289,10 @@ class Army(Unit):
         if r < 3:
             target.die()
 
-    def attack_check(self):
+    def attack_if_possible(self):
         attackables = list(filter(self.is_attackable_unit, self.player.enemy.units))
         if attackables:
-        # TODO: Fix this stupid repeated call to the same object.
-            actual_target = list(attackables)[0]
+            actual_target = attackables[0]
             attack_steps = self.accrue_time(0, self.attack_speed)
             self.spend_time_until(attack_steps, 
                 lambda: self.attack_once(actual_target), 
@@ -337,9 +311,9 @@ class Army(Unit):
                 self.set_state(ArmyStates.IDLE, None)
         # Attack if possible.
         self.time_on_task += delta_time
-        self.attack_check()
+        self.attack_if_possible()
         if self.desired_square != None and self.location != self.desired_square:
-            # Time not accrued here, because time accrued before checking attack
+            # Time not accrued here, because time accrued before attack
             move_steps = self.accrue_time(0, self.move_speed)
             target_location = self.desired_square
             self.spend_time_until(

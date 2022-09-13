@@ -90,7 +90,6 @@ class Game:
             unit.update_move(delta_time)
 
         self.all_units = [u for u in self.all_units if not u.dead]
-        
         self.screen.draw_state(self.get_state())
 
         for unit in self.all_units:

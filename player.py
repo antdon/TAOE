@@ -16,6 +16,16 @@ class Chieftain():
         self.archers: List[Unit] = []
         self.cavalry: List[Unit] = []
 
+    def get_structure(self, word):
+        for structure in self.structures:
+            if structure.name == word:
+                return structure
+        else:
+            raise InvalidBuildingTypeException
+
+    def get_resources(self):
+        return self.get_structure("townhall").resources
+
     def get_units_by_name(self, unit_type: str):
         return [u for u in self.units if u.name == unit_type]
 
@@ -63,13 +73,6 @@ class Player(Chieftain):
         retval = random.randrange(10000)
         self.random_state = random.getstate()
         return retval
-
-    def get_structure(self, word):
-        for structure in self.structures:
-            if structure.name == word:
-                return structure
-        else:
-            raise InvalidBuildingTypeException
         
     def get_updates(self, time):
         # TODO: Sus
