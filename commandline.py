@@ -125,8 +125,7 @@ class CommandLine:
                 state = str(unit.state_action).ljust(9)
                 loc = "({:02x}, {:02x})".format(*unit.location).ljust(12)
                 entries.append(f"| {name} {state} {loc}|")
-        
-        border = "-" * len(max(entries, key=len))
+        border = "-" * 35
         index = 0
         for i, entry in enumerate(reversed(entries)):
             screen.addstr(COMMANDLINE_Y - i, UNIT_INFO_X, entry)
