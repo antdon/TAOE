@@ -21,14 +21,14 @@ class Chieftain():
 
     def can_afford(self, cost):
         for resource, amount in cost.items():
-            if self.structures[0].resources[int(resource.value)] < amount:
+            if self.structures[0].resources[resource] < amount:
                 return False
         else:
             return True
 
     def loses_resources(self, cost):
         for resource, amount in cost.items():
-            self.structures[0].resources[int(resource.value)] -= amount
+            self.structures[0].resources[resource] -= amount
         
 
 class Player(Chieftain):
@@ -80,7 +80,7 @@ class Player(Chieftain):
         #TODO: Extra sus
         status_string = ""
         for resource in Resources:
-            count = str(self.structures[0].resources[int(resource.value)])
+            count = str(self.structures[0].resources[resource])
             status_string += f"{str(resource)}: {count.ljust(10)}"
         status_string += f"Time: {time // 1000}".ljust(10)
         self.screen.addstr(0,0, status_string)

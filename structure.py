@@ -101,7 +101,7 @@ class Town_Hall(Structure):
         super().__init__(location, player)
         self.size = (3, 6)
         # [food, wood, stone, gold]
-        self.resources = [200, 300, 100, 100]
+        self.resources = dict(zip(Resources,[200, 300, 100, 100]))
 
     def send_rally_command(self, unit):
         if self.rallypoint:

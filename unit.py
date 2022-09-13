@@ -17,8 +17,19 @@ class Unit:
         self.attack_range = 1
         self.attack_speed = 300
         self.dead = False
-        self.grid = self.player.game.grid.grid
+        self.grid = self.player.game.grid
         self.player.game.all_units.append(self)
+
+    def accrue_time(self, delta_time, goal) -> int:
+        """
+        Given the amount of time that has passed and the amount needed for the
+        current goal, sets the new amount of time on task and returns the 
+        number of times the goal is accrued.
+        """
+        self.time_on_task += delta_time
+        steps = self.time_on_task // goal
+        self.time_on_task %= goal
+        return steps
 
     def die(self):
         self.player.units = [u for u in self.player.units if u != self]
@@ -27,10 +38,13 @@ class Unit:
         self.player.game.screen.screen.addstr(self.location[0] + 4, self.location[1] + 2, 
                         " ", curses.color_pair(BLANK_COLOR))
         self.player.game.screen.screen.refresh()
+        try:
+            self.container.remove(self)
+        except:
+            pass
 
     def set_desired_square(self, location):
         self.desired_square = location
-        
 
     def step(self, location):
         self.prev_location = self.location
@@ -40,13 +54,6 @@ class Unit:
                      direction[1]//abs(direction[1]) if direction[1] != 0 else 0)
         self.location = (self.location[0] + direction[0],
                          self.location[1] + direction[1])
-
-    def neighbourhood(self, map: TileGrid):
-        surroundings = []
-        for tile in map:
-            if tile.content:
-                surroundings.append((tile.content, tile.coordinate)) 
-        return surroundings
         
     @staticmethod
     def draw(screen, prev_location, location, icon, color):
@@ -64,9 +71,6 @@ class Unit:
         b += self.icon.encode()
         b.append(self.player.number + 1)
         return b
-        # return {"type": self.enum_value, "prev_location": self.prev_location, 
-        #     "location": self.location, "icon": self.icon, 
-        #     "color": self.player.color}
 
 class Villager(Unit):
     enum_value = Units.VILLAGER
@@ -78,7 +82,7 @@ class Villager(Unit):
                 move_speed: int = 500) -> None:
         super().__init__(location, player)
         self.capacity = capacity
-        self.resources = [0,0,0,0]
+        self.resources = {resource: 0 for resource in Resources}
         self.gather_rate: int = 300
         self.move_speed = move_speed
         self.deliver_square = None
@@ -87,15 +91,11 @@ class Villager(Unit):
         self.gathering_resource = None
         self.gather_square = None
         self.target_incidental = None
-        self.debug_info = ""
-        self.player.villagers.append(self)
+        self.container = self.player.villagers
+        self.container.append(self)
 
     def build(self, TargetBuilding, *args):
-        t=  (args[0], args[1])
-        try:
-            y,x = self.grid[t].coordinate
-        except KeyError:
-            raise InvalidCoordinateException
+        y,x = self.grid.validate_coordinate(*args)
         cost = TargetBuilding.get_cost()
         if self.player.can_afford(cost):
             self.set_desired_square((y,x))
@@ -109,6 +109,8 @@ class Villager(Unit):
             raise InvalidCommandException
         if command == "gather":
             TargetResource = args[0]
+            if type(TargetResource) != Resources:
+                raise InvalidResourceTypeException
             self.set_state(VillagerStates.GATHER, TargetResource)
             self.update_target_square()
         if command == "build":
@@ -131,10 +133,10 @@ class Villager(Unit):
         self.deliver_square = square
 
     def capacity_reached(self):
-        return sum(self.resources) >= self.capacity
+        return sum(self.resources.values()) >= self.capacity
 
     def gather_step(self, target):
-        self.resources[int(target.resource.value)] = self.resources[int(target.resource.value)] + 1
+        self.resources[target.resource] = self.resources[target.resource] + 1
 
     def step(self, location):
         super().step(location)
@@ -144,9 +146,7 @@ class Villager(Unit):
         """
         gather rate - units/time
         """
-        self.time_on_task += delta_time
-        gather_steps = self.time_on_task // self.gather_rate
-        self.time_on_task %= self.gather_rate
+        gather_steps = self.accrue_time(delta_time, self.gather_rate)
 
         for s in range(gather_steps):
             self.gather_step(target)
@@ -158,31 +158,25 @@ class Villager(Unit):
         # If next to a building that can take the carried resource, drop the resource.
         for structure in self.player.structures:
             if self.grid[self.location] in structure.get_neighbours():
-                for i,x in enumerate(self.resources):
-                    if structure.can_receive(Resources(i)):
-                        self.player.structures[0].resources[i] += x
-                        self.resources[i] = 0
+                for resource in Resources:
+                    if structure.can_receive(resource):
+                        self.player.structures[0].resources[resource] += self.resources[resource]
+                        self.resources[resource] = 0
                         self.update_target_square()
 
     def carried_resource(self):
-        for i,x in enumerate(self.resources):
-            if x: return Resources(i)
+        for resource in Resources:
+            if self.resources[resource]: return resource
         return None
 
     def get_target_square(self):
-        self.debug += str(self.state_target)
         if self.state_action == VillagerStates.BUILD:
             return self.desired_square
-        self.debug += str(self.state_target)
-        # self.debug = "a"
         if self.state_action == VillagerStates.GATHER and self.needs_delivery(
             self.state_target):
             return self.nearest_deliverable(self.carried_resource())
         else:
             return self.gather_square
-
-    def get_debug_info(self):
-        return (f"{self.debug_info}")
 
     def update_move(self, delta_time):
         """
@@ -201,23 +195,17 @@ class Villager(Unit):
                 else:
                     self.player.debug = "Not enough resources to build building."
                     self.set_state(VillagerStates.IDLE, None)
-        # self.debug = "b"
         if self.location == self.gather_square and not self.needs_delivery(
                                 self.state_target):
-            
             self.gather(self.target_incidental, delta_time)
         else:
-            self.time_on_task += delta_time
-            move_steps = self.time_on_task // self.move_speed
-            self.time_on_task %= self.move_speed
-            self.debug = str(self.state_target)
+            move_steps = self.accrue_time(delta_time, self.move_speed)
             target_location = self.get_target_square()
             for s in range(move_steps):
                 self.step(target_location)
                 if self.location == target_location:
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
                     break
-            
 
     def set_state(self, action, target):
         self.state_action = action
@@ -225,11 +213,8 @@ class Villager(Unit):
         self.update_target_square()
 
     def needs_delivery(self, resource: Resources):
-        if resource == None:
-            exit(f"{self.debug}")
-        return (any([x for i,x in enumerate(self.resources) if 
-            i != int(resource.value)]) or self.capacity_reached())
-        
+        return (any([self.resources[r] for r in Resources if 
+            r != resource]) or self.capacity_reached())
 
     def nearest_gatherable(self, resource: Resources):
         """
@@ -242,7 +227,7 @@ class Villager(Unit):
         target_incidental = None
         for incidental in game.incidentals:
             if resource == incidental.resource:
-                for square in game.grid.grid[incidental.location].get_neighbours():
+                for square in self.grid[incidental.location].get_neighbours():
                     curr_dist = (len(square.users), square.get_dist(self.location))
                     if curr_dist < dist:
                         nearest = square
@@ -262,18 +247,8 @@ class Villager(Unit):
 
     def update_target_square(self):
         if self.state_action == VillagerStates.GATHER:
-            if type(self.state_target) == Resources:
-                self.set_gather_square(*self.nearest_gatherable(self.state_target))
-                self.set_deliver_square(self.nearest_deliverable(self.state_target))
-                
-        if self.gather_square == None:
-            pass
-        if self.deliver_square == None:
-            pass
-    
-    def die(self):
-        super().die()
-        self.player.villagers = [u for u in self.player.villagers if u != self]
+            self.set_gather_square(*self.nearest_gatherable(self.state_target))
+            self.set_deliver_square(self.nearest_deliverable(self.state_target))
         
 class Army(Unit):
     enum_value = -1
@@ -281,7 +256,7 @@ class Army(Unit):
         super().__init__(location, player)
         self.state_action = ArmyStates.IDLE
         self.state_target = None
-
+        self.desired_square = None
         random.seed(self.player.next_random())
         self.random_state = random.getstate()
 
@@ -291,10 +266,7 @@ class Army(Unit):
 
     def move(self, *args):
         # TODO: Make this set the desired square to a square rather than a coord
-        try:
-            y,x = self.grid[(args[0], args[1])].coordinate
-        except KeyError:
-            raise InvalidCoordinateException
+        y,x = self.grid.validate_coordinate(*args)
         self.state_action = ArmyStates.MOVE
         self.state_target = None
         self.set_desired_square((y,x))
@@ -309,6 +281,7 @@ class Army(Unit):
 
     def nearest_attackable(self, target=None):
         squares = []
+        # TODO: Enum problem.
         class_dict = {
             Units.ARCHER: Archer,
             Units.CAVALRY: Cavalry,
@@ -337,7 +310,6 @@ class Army(Unit):
         r = self.random_attack_result()
         if r < 3:
             target.die()
-            self.player.debug = "Dead"
 
     def attack_check(self):
         try:
@@ -352,13 +324,13 @@ class Army(Unit):
         if attackables:
         # TODO: Fix this stupid repeated call to the same object.
             actual_target = list(attackables)[0]
-            attack_steps = self.time_on_task // self.attack_speed
-            self.time_on_task %= self.attack_speed
+            attack_steps = self.accrue_time(0, self.attack_speed)
             for a in range(attack_steps):
                 self.attack_once(actual_target)
                 if actual_target.dead:
                     pass            
             
+    # TODO: Needs refactoring, unclear what behaviour is happening here.
     def update_move(self, delta_time):
         """
         Updates movement if possible.
@@ -369,13 +341,12 @@ class Army(Unit):
             except ValueError:
                 self.state_action = ArmyStates.IDLE
                 self.state_target = None
+        # Attack if possible.
+        self.time_on_task += delta_time
+        self.attack_check()
         if self.desired_square != None and self.location != self.desired_square:
-            self.time_on_task += delta_time
-            s = f"{self.time_on_task}"
-            self.attack_check()
-            s += f"{self.time_on_task}"
-            move_steps = self.time_on_task // self.move_speed
-            self.time_on_task %= self.move_speed
+            # Time not accrued here, because time accrued before checking attack
+            move_steps = self.accrue_time(0, self.move_speed)
             target_location = self.desired_square
             for s in range(move_steps):
                 self.step(target_location)
@@ -383,35 +354,10 @@ class Army(Unit):
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
                     self.state_action = ArmyStates.IDLE
                     break
-        else:
-            self.time_on_task += delta_time
-            self.attack_check()
     
     def set_attacking(self, target_unit):
         self.state_action = ArmyStates.ATTACK
         self.state_target = target_unit
-
-    def battle(self, target: Unit, difficulty: float, delta_time):
-        """
-        difficulty should be a float from 0 to 1 with the larger the number the 
-        less likely the target is to die on any particular hit
-        return True they died
-        """
-        def hit(difficulty):
-            if random() > difficulty:
-                return True
-            else:
-                return False
-
-        self.time_on_task += delta_time
-        move_steps = self.time_on_task // self.hit_rate
-        self.time_on_task %= self.hit_rate
-        for s in range(move_steps):
-            killed = hit(difficulty)
-            if killed:
-                self.time_on_task += (move_steps - s - 1) * self.hit_rate
-                break
-        return killed
 
 class Soldier(Army):
     enum_value = Units.SOLDIER
@@ -419,23 +365,12 @@ class Soldier(Army):
     cost = SOLDIER_COST
     icon = "S"
 
-    def __init__(self, location, player, level: int = 1) -> None:
+    def __init__(self, location, player) -> None:
         super().__init__(location, player)
-        self.level = level
         self.hit_rate: int = 500
-        self.desired_square = None
         self.move_speed = SOLDIER_SPEED
-        self.player.soldiers.append(self)
-
-    def get_index(self):
-        if self in self.player.soldiers:
-            return self.player.soldiers.index(self)
-        else:
-            return None
-
-    def die(self):
-        super().die()
-        self.player.soldiers = [u for u in self.player.soldiers if u != self]
+        self.container = self.player.soldiers
+        self.container.append(self)
 
 class Archer(Army):
     enum_value = Units.ARCHER
@@ -443,24 +378,13 @@ class Archer(Army):
     cost = ARCHER_COST
     icon = "A"
 
-    def __init__(self, location, player, level: int = 1) -> None:
+    def __init__(self, location, player) -> None:
         super().__init__(location, player)
-        self.level = level
         self.hit_rate: int = 500
         self.attack_range = 5
-        self.desired_square = None
         self.move_speed = ARCHER_SPEED
-        self.player.archers.append(self)
-
-    def get_index(self):
-        if self in self.player.archers:
-            return self.player.archers.index(self)
-        else:
-            return None
-    
-    def die(self):
-        super().die()
-        self.player.archers = [u for u in self.player.archers if u != self]
+        self.container = self.player.archers
+        self.container.append(self)
 
 class Cavalry(Army):
     enum_value = Units.CAVALRY
@@ -468,20 +392,9 @@ class Cavalry(Army):
     cost = CAVALRY_COST
     icon = "C"
 
-    def __init__(self, location, player, level: int =1) -> None:
+    def __init__(self, location, player) -> None:
         super().__init__(location, player)
-        self.level = level
         self.hit_rate: int = 500
-        self.desired_square = None
         self.move_speed = CAVALRY_SPEED
-        self.player.cavalry.append(self)
-
-    def get_index(self):
-        if self in self.player.cavalry:
-            return self.player.cavalry.index(self)
-        else:
-            return None
-    
-    def die(self):
-        super().die()
-        self.player.cavalry = [u for u in self.player.cavalry if u != self]
+        self.container = self.player.cavalry
+        self.container.append(self)
