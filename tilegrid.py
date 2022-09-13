@@ -28,7 +28,8 @@ class Tile:
         return squares
 
     def get_dist(self, coord: Tuple[int, int]) -> int:
-        return max(abs(self.coordinate[0] - coord[0]), abs(self.coordinate[1] - coord[1]))
+        return max( abs(self.coordinate[0] - coord[0]), 
+                    abs(self.coordinate[1] - coord[1]))
 
 
 class TileGrid():
@@ -44,7 +45,8 @@ class TileGrid():
                 for i,j in itertools.product(range(left,left+width), 
                                             range(top, top+height)):
                     self.grid[(i, j)].content = resource((i,j))
-                    self.grid[(MAPHEIGHT - i, MAPWIDTH - j)].content = resource((MAPHEIGHT - i,MAPWIDTH - j))
+                    self.grid[(MAPHEIGHT - i, MAPWIDTH - j)].content = resource(
+                        (MAPHEIGHT - i,MAPWIDTH - j))
 
     def __getitem__(self, coords: Tuple[int, int]):
         y, x = coords

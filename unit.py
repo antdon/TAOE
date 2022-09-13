@@ -72,6 +72,17 @@ class Unit:
         b.append(self.player.number + 1)
         return b
 
+    def set_state(self, action, target):
+        self.state_action = action
+        self.state_target = target
+        self.update_target_square()
+
+    # TODO: Tidy this up, it's villager only, and only on gather.
+    def update_target_square(self):
+        if self.state_action == VillagerStates.GATHER:
+            self.set_gather_square(*self.nearest_gatherable(self.state_target))
+            self.set_deliver_square(self.nearest_deliverable(self.state_target))
+
 class Villager(Unit):
     enum_value = Units.VILLAGER
     name = "villager"
@@ -86,8 +97,7 @@ class Villager(Unit):
         self.gather_rate: int = 300
         self.move_speed = move_speed
         self.deliver_square = None
-        self.state_action = VillagerStates.IDLE
-        self.state_target = None
+        self.set_state(VillagerStates.IDLE, None)
         self.gathering_resource = None
         self.gather_square = None
         self.target_incidental = None
@@ -116,10 +126,6 @@ class Villager(Unit):
         if command == "build":
             TargetBuilding = args[0]
             self.build(TargetBuilding, *args[1:])
-
-    def stop(self):
-        self.state_action = VillagerStates.IDLE
-        self.state_target = None
 
     def set_gather_square(self, square, incidental, resource):
         if self.gather_square:
@@ -207,11 +213,6 @@ class Villager(Unit):
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
                     break
 
-    def set_state(self, action, target):
-        self.state_action = action
-        self.state_target = target
-        self.update_target_square()
-
     def needs_delivery(self, resource: Resources):
         return (any([self.resources[r] for r in Resources if 
             r != resource]) or self.capacity_reached())
@@ -244,38 +245,27 @@ class Villager(Unit):
         if not squares:
             exit(f"{self.player.structures}, {list(structure.location for structure in self.player.structures)} {squares}")
         return min(squares, key = lambda square: square.get_dist(self.gather_square)).coordinate
-
-    def update_target_square(self):
-        if self.state_action == VillagerStates.GATHER:
-            self.set_gather_square(*self.nearest_gatherable(self.state_target))
-            self.set_deliver_square(self.nearest_deliverable(self.state_target))
         
 class Army(Unit):
     enum_value = -1
     def __init__(self, location, player):
         super().__init__(location, player)
-        self.state_action = ArmyStates.IDLE
-        self.state_target = None
+        self.set_state(ArmyStates.IDLE, None)
         self.desired_square = None
         random.seed(self.player.next_random())
         self.random_state = random.getstate()
 
-    def stop(self):
-        self.state_action = ArmyStates.IDLE
-        self.state_target = None
-
     def move(self, *args):
         # TODO: Make this set the desired square to a square rather than a coord
         y,x = self.grid.validate_coordinate(*args)
-        self.state_action = ArmyStates.MOVE
-        self.state_target = None
+        self.set_state(ArmyStates.MOVE, None)
         self.set_desired_square((y,x))
 
     def execute_command(self, command, *args):
         if command not in ["attack", "move"]:
             raise InvalidCommandException
         if command == "attack":
-            self.set_attacking(args[0])
+            self.set_state(ArmyStates.ATTACK, args[0])
         if command == "move":
             self.move(*args)
 
@@ -318,8 +308,7 @@ class Army(Unit):
             else:
                 nearest = self.nearest_attackable(None)
         except ValueError:
-            self.state_action = ArmyStates.IDLE
-            self.state_target = None
+            self.set_state(ArmyStates.IDLE, None)
         attackables = list(filter(self.is_attackable_unit, self.player.enemy.units))
         if attackables:
         # TODO: Fix this stupid repeated call to the same object.
@@ -339,8 +328,7 @@ class Army(Unit):
             try:
                 self.desired_square = self.nearest_attackable(self.state_target)
             except ValueError:
-                self.state_action = ArmyStates.IDLE
-                self.state_target = None
+                self.set_state(ArmyStates.IDLE, None)
         # Attack if possible.
         self.time_on_task += delta_time
         self.attack_check()
@@ -352,12 +340,7 @@ class Army(Unit):
                 self.step(target_location)
                 if self.location == target_location:
                     self.time_on_task += (move_steps - s - 1) * self.move_speed
-                    self.state_action = ArmyStates.IDLE
                     break
-    
-    def set_attacking(self, target_unit):
-        self.state_action = ArmyStates.ATTACK
-        self.state_target = target_unit
 
 class Soldier(Army):
     enum_value = Units.SOLDIER

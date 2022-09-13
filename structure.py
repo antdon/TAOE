@@ -11,7 +11,7 @@ class Structure:
         self.player = player
         self.player.structures.append(self)
         self.player.game.all_structures.append(self)
-        self.grid = self.player.game.grid.grid
+        self.grid = self.player.game.grid
         self.rallypoint = None
 
     def create(self, alt_building, *args):
@@ -58,7 +58,7 @@ class Structure:
         for x in range(self.location[1], self.location[1] + self.size[1]):
             squares.append((self.location[0]-1, x))
             squares.append((self.location[0]+self.size[0], x))
-        return [self.grid.get(s, None) for s in squares if s]
+        return [self.grid.grid.get(s, None) for s in squares if s]
         
     @staticmethod
     def get_next_state():
@@ -146,12 +146,9 @@ class Barracks(Structure):
     
     def set_rallypoint(self, *args):
         if args and len(args) >= 2:
-            t = (args[0], args[1])
-            try:
-                self.rallypoint = self.grid[t].coordinate
-            except KeyError:
-                raise InvalidCoordinateException
-
+            t = self.grid.validate_coordinate(*args)
+            self.rallypoint = t
+            
     @staticmethod
     def get_cost():
         return BARRACKS_COST
