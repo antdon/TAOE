@@ -38,6 +38,8 @@ class Unit:
         except:
             pass
         self.dead = True
+        self.player.game.screen.screen.addstr(self.prev_location[0] + 4, 
+                self.prev_location[1] + 2, " ", curses.color_pair(BLANK_COLOR))
         self.player.game.screen.screen.addstr(self.location[0] + 4, 
                 self.location[1] + 2, " ", curses.color_pair(BLANK_COLOR))
         self.player.game.screen.screen.refresh()
@@ -313,13 +315,6 @@ class Army(Unit):
             target.die()
 
     def attack_check(self):
-        try:
-            if self.state_action == ArmyStates.ATTACK:        
-                nearest = self.nearest_attackable(self.state_target)
-            else:
-                nearest = self.nearest_attackable(None)
-        except ValueError:
-            self.set_state(ArmyStates.IDLE, None)
         attackables = list(filter(self.is_attackable_unit, self.player.enemy.units))
         if attackables:
         # TODO: Fix this stupid repeated call to the same object.
