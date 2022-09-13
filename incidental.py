@@ -18,6 +18,7 @@ class Incidental:
                     cls.get_rep(location), cls.color)
 
     def draw_info(self):
+        return (type(self), self.location)
         b = bytearray(b"I")
         b.append(int(self.resource.value) + 1)
         b.append(self.location[0]+1)

@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import List, Callable
 from tilegrid import TileGrid
 import random
 from constants import *
@@ -33,10 +33,13 @@ class Unit:
 
     def die(self):
         self.player.units = [u for u in self.player.units if u != self]
-        self.player.game.all_units = [u for u in self.player.game.all_units if u != self]
+        try:
+            self.player.game.all_units.remove(self)
+        except:
+            pass
         self.dead = True
-        self.player.game.screen.screen.addstr(self.location[0] + 4, self.location[1] + 2, 
-                        " ", curses.color_pair(BLANK_COLOR))
+        self.player.game.screen.screen.addstr(self.location[0] + 4, 
+                self.location[1] + 2, " ", curses.color_pair(BLANK_COLOR))
         self.player.game.screen.screen.refresh()
         try:
             self.container.remove(self)
@@ -62,26 +65,25 @@ class Unit:
         screen.addstr(location[0] + 4, location[1] + 2, icon, color)
     
     def draw_info(self):
-        b = bytearray(b"U")
-        b.append(int(self.enum_value.value) + 1)
-        b.append(self.prev_location[0]+1)
-        b.append(self.prev_location[1]+1)
-        b.append(self.location[0]+1)
-        b.append(self.location[1]+1)
-        b += self.icon.encode()
-        b.append(self.player.number + 1)
-        return b
+        return (type(self), self.prev_location, self.location, 
+                self.icon, self.player.color)
 
     def set_state(self, action, target):
         self.state_action = action
         self.state_target = target
-        self.update_target_square()
 
-    # TODO: Tidy this up, it's villager only, and only on gather.
-    def update_target_square(self):
-        if self.state_action == VillagerStates.GATHER:
-            self.set_gather_square(*self.nearest_gatherable(self.state_target))
-            self.set_deliver_square(self.nearest_deliverable(self.state_target))
+    def spend_time_until(self, num_steps: int, action: Callable, 
+        until_state: Callable, rate: int):
+        """
+        Helper function for doing the given action until the unit reaches a
+        desired state. When the unit does reach the desired state, the leftover
+        accrued time is returned to time_on_task. 
+        """
+        for s in range(num_steps):
+            action()
+            if until_state():
+                self.time_on_task += (num_steps - s - 1) * rate
+                break
 
 class Villager(Unit):
     enum_value = Units.VILLAGER
@@ -123,9 +125,15 @@ class Villager(Unit):
                 raise InvalidResourceTypeException
             self.set_state(VillagerStates.GATHER, TargetResource)
             self.update_target_square()
-        if command == "build":
+        elif command == "build":
             TargetBuilding = args[0]
             self.build(TargetBuilding, *args[1:])
+
+    # TODO: Tidy this up, it's villager only, and only on gather.
+    def update_target_square(self):
+        if self.state_action == VillagerStates.GATHER:
+            self.set_gather_square(*self.nearest_gatherable(self.state_target))
+            self.set_deliver_square(self.nearest_deliverable(self.state_target))
 
     def set_gather_square(self, square, incidental, resource):
         if self.gather_square:
@@ -133,7 +141,8 @@ class Villager(Unit):
         self.gather_square = square
         self.target_incidental = incidental
         self.grid[square].users |= {self}
-        self.player.debug = f"{square} {incidental} {resource}"
+        self.player.debug = f"Villager is gathering {resource} at" \
+            f" {self.grid[square]}"
 
     def set_deliver_square(self, square):
         self.deliver_square = square
@@ -153,12 +162,10 @@ class Villager(Unit):
         gather rate - units/time
         """
         gather_steps = self.accrue_time(delta_time, self.gather_rate)
-
-        for s in range(gather_steps):
-            self.gather_step(target)
-            if self.capacity_reached():
-                self.time_on_task += (gather_steps - s - 1) * self.gather_rate
-                break
+        self.spend_time_until(
+            gather_steps, lambda: self.gather_step(target), 
+            self.capacity_reached, self.gather_rate
+        )
 
     def drop_if_possible(self):
         # If next to a building that can take the carried resource, drop the resource.
@@ -182,6 +189,8 @@ class Villager(Unit):
             self.state_target):
             return self.nearest_deliverable(self.carried_resource())
         else:
+            if not self.gather_square:
+                self.update_target_square()
             return self.gather_square
 
     def update_move(self, delta_time):
@@ -207,11 +216,10 @@ class Villager(Unit):
         else:
             move_steps = self.accrue_time(delta_time, self.move_speed)
             target_location = self.get_target_square()
-            for s in range(move_steps):
-                self.step(target_location)
-                if self.location == target_location:
-                    self.time_on_task += (move_steps - s - 1) * self.move_speed
-                    break
+            self.spend_time_until(move_steps, 
+                lambda: self.step(target_location),
+                lambda: self.location == target_location, 
+                self.move_speed)
 
     def needs_delivery(self, resource: Resources):
         return (any([self.resources[r] for r in Resources if 
@@ -265,7 +273,10 @@ class Army(Unit):
         if command not in ["attack", "move"]:
             raise InvalidCommandException
         if command == "attack":
-            self.set_state(ArmyStates.ATTACK, args[0])
+            try:
+                self.set_state(ArmyStates.ATTACK, args[0])
+            except IndexError:
+                raise InvalidCommandArgumentException
         if command == "move":
             self.move(*args)
 
@@ -314,10 +325,10 @@ class Army(Unit):
         # TODO: Fix this stupid repeated call to the same object.
             actual_target = list(attackables)[0]
             attack_steps = self.accrue_time(0, self.attack_speed)
-            for a in range(attack_steps):
-                self.attack_once(actual_target)
-                if actual_target.dead:
-                    pass            
+            self.spend_time_until(attack_steps, 
+                lambda: self.attack_once(actual_target), 
+                lambda: actual_target.dead,
+                self.attack_speed)
             
     # TODO: Needs refactoring, unclear what behaviour is happening here.
     def update_move(self, delta_time):
@@ -336,11 +347,12 @@ class Army(Unit):
             # Time not accrued here, because time accrued before checking attack
             move_steps = self.accrue_time(0, self.move_speed)
             target_location = self.desired_square
-            for s in range(move_steps):
-                self.step(target_location)
-                if self.location == target_location:
-                    self.time_on_task += (move_steps - s - 1) * self.move_speed
-                    break
+            self.spend_time_until(
+                move_steps, lambda: self.step(target_location), 
+                lambda: self.location == target_location, self.move_speed
+            )
+        if self.location == self.desired_square and self.state_action == ArmyStates.MOVE:
+            self.set_state(ArmyStates.IDLE, None)
 
 class Soldier(Army):
     enum_value = Units.SOLDIER
@@ -350,7 +362,6 @@ class Soldier(Army):
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
-        self.hit_rate: int = 500
         self.move_speed = SOLDIER_SPEED
         self.container = self.player.soldiers
         self.container.append(self)
@@ -363,7 +374,6 @@ class Archer(Army):
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
-        self.hit_rate: int = 500
         self.attack_range = 5
         self.move_speed = ARCHER_SPEED
         self.container = self.player.archers
@@ -377,7 +387,6 @@ class Cavalry(Army):
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
-        self.hit_rate: int = 500
         self.move_speed = CAVALRY_SPEED
         self.container = self.player.cavalry
         self.container.append(self)

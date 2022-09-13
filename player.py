@@ -1,5 +1,5 @@
 from typing import List
-from structure import Structure, Town_Hall, Barracks
+from structure import Structure, TownHall, Barracks
 from unit import Unit, Villager, Archer, Soldier, Cavalry
 from constants import *
 from commandline import *
@@ -116,6 +116,6 @@ class NPC(Chieftain):
         for unit in self.units:
             if unit.state_action == ArmyStates.IDLE:
                 if filter(lambda u: u not in self.enemy.villagers, self.enemy.units):
-                    unit.set_attacking(random.choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]))
+                    unit.set_state(ArmyStates.ATTACK, random.choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]))
                 else:
-                    unit.set_attack(Units.VILLAGER)
+                    unit.set_state(ArmyStates.ATTACK, Units.VILLAGER)

@@ -73,20 +73,9 @@ class Structure:
         screen.addstr(location[0]+5, location[1] + 2, "ding", color)
 
     def draw_info(self):
-        b = bytearray(b'S')
-        b.append(int(self.enum_value.value) + 1)
-        b.append(self.location[0]+1)
-        b.append(self.location[1]+1)
-        b.append(self.player.number + 1)
-        b += b"..."
-        return b
-        # return {"type": self.enum_value, "location": self.location, 
-        #         "color": self.player.color}
+        return (type(self), self.location, self.player.color)
 
-
-
-
-class Town_Hall(Structure):
+class TownHall(Structure):
     """
     A Town Hall is where a player should store their resources. 
     Other structures have only a singular resource they can store and only 

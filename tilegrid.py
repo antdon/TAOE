@@ -31,6 +31,9 @@ class Tile:
         return max( abs(self.coordinate[0] - coord[0]), 
                     abs(self.coordinate[1] - coord[1]))
 
+    def __str__(self):
+        return f"({'{:02x}'.format(self.coordinate[0])}, {'{:02x}'.format(self.coordinate[1])})"
+
 
 class TileGrid():
     def __init__(self) -> None:
