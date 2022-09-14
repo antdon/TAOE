@@ -63,10 +63,10 @@ class TileGrid():
             raise InvalidCoordinateException
 
     def validate_coordinate(self, *args):
-        t = (args[0], args[1])
         try:
+            t = (args[0], args[1])
             return self.grid[t].coordinate
-        except KeyError:
+        except (KeyError, IndexError):
             raise InvalidCoordinateException
 
 
