@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from constants import *
 from game import *
 from sys import argv
