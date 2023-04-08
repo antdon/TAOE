@@ -1,10 +1,11 @@
+from typing import List
 from constants import *
 import threading
 import socket
 from structure import LumberCamp, Mine, Mill, Barracks
 import time
 
-from unit import Archer, Cavalry, Soldier, Villager
+from unit import Archer, Cavalry, Soldier, Unit, Villager
 from utils import *
 
 class CommandLine:
@@ -60,9 +61,11 @@ class CommandLine:
     def interpret_command(self, command):
         words = command.split(" ")
         file = words[0].split("/")
-        
+        if len(file) != 2:
+            self.player.debug = "Unit commands must be of the structure 'unit/command'."
+            return
         try:
-            chosen_units = self.parse_selection(file[0])
+            chosen_units:List[Unit] = self.parse_selection(file[0])
             args = list(map(self.parse_arg, words[1:]))
             for u in chosen_units:
                 u.execute_command(file[1], *args)
