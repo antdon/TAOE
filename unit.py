@@ -150,13 +150,14 @@ class Villager(Unit):
 
     def drop_if_possible(self):
         # If next to a building that can take the carried resource, drop the resource.
-        for structure in self.player.structures:
-            if self.grid[self.location] in structure.get_neighbours():
-                for resource in Resources:
-                    if structure.can_receive(resource):
-                        self.player.get_resources()[resource] += self.resources[resource]
-                        self.resources[resource] = 0
-                        self.set_path()
+        for structures in self.player.structures.values():
+            for structure in structures:
+                if self.grid[self.location] in structure.get_neighbours():
+                    for resource in Resources:
+                        if structure.can_receive(resource):
+                            self.player.get_resources()[resource] += self.resources[resource]
+                            self.resources[resource] = 0
+                            self.set_path()
 
     def carried_resource(self):
         for resource in Resources:
@@ -181,7 +182,11 @@ class Villager(Unit):
             if self.state_action == VillagerStates.BUILD:
                 Building = self.state_target
                 if self.player.can_afford(Building.get_cost()):
-                    Building(self.location, self.player)
+                    building = Building(self.location, self.player)
+                    if building.name in self.player.structures:
+                        self.player.structures[building.name].append(building)
+                    else:
+                        self.player.structures[building.name] = [building]
                     self.set_state(*Building.get_next_state())
                     for villager in self.player.villagers:
                         villager.set_path()
@@ -225,9 +230,10 @@ class Villager(Unit):
     def nearest_deliverable(self, resource: Resources):
         #TODO: A* Algorithm
         squares = []
-        for structure in self.player.structures:
-            if structure.can_receive(resource):
-                squares += structure.get_neighbours()
+        for structures in self.player.structures.values():
+            for structure in structures:
+                if structure.can_receive(resource):
+                    squares += structure.get_neighbours()
         # TODO: Handle errors here.
         return min(squares, key = lambda square: square.get_dist(self.desired_square)).coordinate
         

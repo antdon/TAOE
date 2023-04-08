@@ -9,7 +9,7 @@ class Structure:
     def __init__(self, location, player) -> None:
         self.location = location
         self.player = player
-        self.player.structures.append(self)
+        self.name = "structure"
         self.player.game.all_structures.append(self)
         self.grid = self.player.game.grid
         self.rallypoint = None
@@ -83,12 +83,12 @@ class TownHall(Structure):
     resources and can store infinite of all of them
     """
     enum_value = Buildings.TOWNHALL
-    name = "townhall"
     buildable_units = [Villager]
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
         self.size = (3, 6)
+        self.name = "townhall"
         # [food, wood, stone, gold]
         self.resources = dict(zip(Resources,[200, 300, 100, 100]))
 
@@ -117,7 +117,9 @@ class TownHall(Structure):
 
 class House(Structure):
     enum_value = Buildings.HOUSE
-    name = "house"
+    def __init__(self, location, player) -> None:
+        self.name = "house"
+        super().__init__(location, player)
 
 class Barracks(Structure):
     enum_value = Buildings.BARRACKS
@@ -125,9 +127,10 @@ class Barracks(Structure):
     buildable_units = [Soldier, Archer, Cavalry]
 
     def __init__(self, location, player) -> None:
-        self.size = (2, 4)
-        player.loses_resources(BARRACKS_COST)
         super().__init__(location, player)
+        self.size = (2, 4)
+        self.name = "barracks"
+        player.loses_resources(BARRACKS_COST)
 
     def send_rally_command(self, unit):
         if self.rallypoint:
@@ -167,6 +170,10 @@ class Mine(Collector):
     enum_value = Buildings.MINE
     name = "mine"
 
+    def __init__(self, location, player) -> None:
+        self.name = "mine"
+        super().__init__(location, player)
+
     @staticmethod
     def get_next_state():
         return VillagerStates.GATHER, Resources.GOLD
@@ -183,6 +190,9 @@ class Mine(Collector):
 class Mill(Collector):
     enum_value = Buildings.MILL
     name = "mill"
+    def __init__(self, location, player) -> None:
+        self.name = "mill"
+        super().__init__(location, player)
 
     @staticmethod
     def get_next_state():
@@ -199,6 +209,9 @@ class Mill(Collector):
 class LumberCamp(Collector):
     enum_value = Buildings.LUMBERCAMP
     name = "lumbercamp"
+    def __init__(self, location, player) -> None:
+        self.name = "lumbercamp"
+        super().__init__(location, player)
     
     @staticmethod
     def get_next_state():
@@ -221,10 +234,13 @@ class Build_Site(Structure):
         super().__init__(location)
         self.time_to_complete = time_to_complete
         self.building = building
+        self.name = "buildsite"
 
 class Quarry(Collector):
     enum_value = Buildings.LUMBERCAMP
-    name = "quarry"
+    def __init__(self, location, player) -> None:
+        self.name = "quarry"
+        super().__init__(location, player)
 
     @staticmethod
     def get_next_state():

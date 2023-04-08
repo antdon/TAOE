@@ -23,7 +23,7 @@ class Game:
         if is_npc_game:
             self.players = [Player(screen, self, PLAYER_COLOR, seed)]
             self.players[0].units.append(Villager((23, 16), self.players[0]))
-            TownHall((20, 10), self.players[0])
+            self.players[0].structures["townhall"] = [TownHall((20, 10), self.players[0])]
             self.enemy = NPC()
             self.players.append(self.enemy)
             self.enemy.game = self

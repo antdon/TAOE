@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 from structure import Structure, TownHall, Barracks
 from unit import Unit, Villager, Archer, Soldier, Cavalry
 from constants import *
@@ -9,17 +9,16 @@ from terminal import Server, Client
 
 class Chieftain():
     def __init__(self) -> None:
-        self.structures: List[Structure] = []
+        self.structures: Dict[str, List[Structure]] = {}
         self.villagers: List[Villager] = []
         self.units: List[Unit] = []
         self.soldiers: List[Unit] = []
         self.archers: List[Unit] = []
         self.cavalry: List[Unit] = []
 
-    def get_structure(self, word):
-        for structure in self.structures:
-            if structure.name == word:
-                return structure
+    def get_structure(self, word, indx=0):
+        if word in self.structures and indx < len(self.structures[word]):
+            return self.structures[word][indx]
         else:
             raise InvalidBuildingTypeException
 
@@ -29,16 +28,16 @@ class Chieftain():
     def get_units_by_name(self, unit_type: str):
         return [u for u in self.units if u.name == unit_type]
 
-    def can_afford(self, cost):
+    def can_afford(self, cost:int):
         for resource, amount in cost.items():
-            if self.structures[0].resources[resource] < amount:
+            if self.get_resources()[resource] < amount:
                 return False
         else:
             return True
 
     def loses_resources(self, cost):
         for resource, amount in cost.items():
-            self.structures[0].resources[resource] -= amount
+            self.get_resources()[resource] -= amount
         
 
 class Player(Chieftain):
@@ -83,7 +82,7 @@ class Player(Chieftain):
         #TODO: Extra sus
         status_string = ""
         for resource in Resources:
-            count = str(self.structures[0].resources[resource])
+            count = str(self.get_resources()[resource])
             status_string += f"{str(resource)}: {count.ljust(10)}"
         status_string += f"Time: {time // 1000}".ljust(10)
         self.screen.addstr(0,0, status_string)
