@@ -92,7 +92,7 @@ class CommandLine:
         self.clear_command()
 
     def update(self, newkey):
-        if newkey == 263:
+        if newkey == 8 or newkey == 127 or newkey == curses.KEY_BACKSPACE:
             self.command = self.command[:-1]
         elif newkey == 10:
             self.send_command()
