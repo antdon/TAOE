@@ -54,20 +54,9 @@ class CommandLine:
                     return (word[:i+1], int(index))
         # TODO: Does string comparison work slower here?
         unit_name, index = split_index(word)
-        for unit in Units:
-            unit = str(unit)
-            if unit == word[:len(unit)]:
-                selector = word[len(unit):]
-                unit_container = self.player.get_units_by_name(unit)
-                if selector == "s" and unit != "villager":
-                    return [u for u in unit_container]
-                else:
-                    try:
-                        ind = int(selector)
-                        return [unit_container[ind]]
-                    except:
-                        raise InvalidUnitTypeException(word, unit)
-        if unit_name in ["townhall", "barracks"]:
+        if unit_name in ["villager", "soldier", "archer", "cavalry"]:
+            return [self.player.get_unit_by_name(unit_name, index)]
+        elif unit_name in ["townhall", "barracks"]:
             return [self.player.get_structure(unit_name, index)]
         raise InvalidCommandException
 

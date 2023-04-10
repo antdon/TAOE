@@ -25,8 +25,12 @@ class Chieftain():
     def get_resources(self):
         return self.get_structure("townhall").resources
 
-    def get_units_by_name(self, unit_type: str):
-        return [u for u in self.units if u.name == unit_type]
+    def get_unit_by_name(self, unit_type: str, indx=0):
+        units_of_type = list(filter(lambda unit: unit.name == unit_type, self.units))
+        if units_of_type and indx < len(units_of_type):
+            return units_of_type[indx]
+        else:
+            raise InvalidUnitTypeException
 
     def can_afford(self, cost:int):
         for resource, amount in cost.items():
