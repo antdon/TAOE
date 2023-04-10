@@ -134,6 +134,7 @@ class CommandLine:
 
     def ls(self, screen):
         entries = []
+        structures = []
         
         for unit_list in [self.player.soldiers, self.player.villagers, 
                         self.player.cavalry, self.player.archers]:
@@ -142,6 +143,12 @@ class CommandLine:
                 state = str(unit.state_action).ljust(9)
                 loc = "({:02x}, {:02x})".format(*unit.location).ljust(12)
                 entries.append(f"| {name} {state} {loc}|")
+        for structure_list in self.player.structures.values():
+            for structure in structure_list:
+                name = (structure.name+str(i)).ljust(9)
+                loc = "({:02x}, {:02x})".format(*structure.location).ljust(12)
+                space = "".ljust(9)
+                structures.append(f"| {name} {space} {loc}|")
         border = "-" * 35
         index = 0
         for i, entry in enumerate(reversed(entries)):
@@ -150,6 +157,12 @@ class CommandLine:
         screen.addstr(COMMANDLINE_Y + 1, UNIT_INFO_X, border)
         screen.addstr(COMMANDLINE_Y - 1 - index, UNIT_INFO_X, border)
         screen.addstr(COMMANDLINE_Y - 2 - index, UNIT_INFO_X, " "*len(border))
+        for i, structure in enumerate(reversed(structures)):
+            screen.addstr(COMMANDLINE_Y - i - 2 - index, UNIT_INFO_X, structure)
+        index = i
+        screen.addstr(COMMANDLINE_Y - 3 - index, UNIT_INFO_X, border)
+        screen.addstr(COMMANDLINE_Y - 4 - index, UNIT_INFO_X, " "*len(border))
+
         
 
 class RemoteCommander(CommandLine):
