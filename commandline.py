@@ -8,6 +8,7 @@ import time
 from unit import Archer, Cavalry, Soldier, Unit, Villager
 from utils import *
 
+
 class CommandLine:
     def __init__(self, screen, player):
         self.command = ""
@@ -51,7 +52,8 @@ class CommandLine:
                 elif index == "":
                     return (word, 0)
                 else:
-                    return (word[:i+1], int(index))
+                    return (word[: i + 1], int(index))
+
         # TODO: Does string comparison work slower here?
         unit_name, index = split_index(word)
         if unit_name in ["villager", "soldier", "archer", "cavalry"]:
@@ -60,7 +62,6 @@ class CommandLine:
             return [self.player.get_structure(unit_name, index)]
         raise InvalidCommandException
 
-
     def interpret_command(self, command):
         words = command.split(" ")
         file = words[0].split("/")
@@ -68,7 +69,7 @@ class CommandLine:
             self.player.debug = "Unit commands must be of the structure 'unit/command'."
             return
         try:
-            chosen_units:List[Unit] = self.parse_selection(file[0])
+            chosen_units: List[Unit] = self.parse_selection(file[0])
             args = list(map(self.parse_arg, words[1:]))
             for u in chosen_units:
                 u.execute_command(file[1], *args)
@@ -118,23 +119,27 @@ class CommandLine:
 
     # TODO: Move for client
     def draw(self):
-        self.player.screen.addstr(COMMANDLINE_Y, 0, " "*100)
+        self.player.screen.addstr(COMMANDLINE_Y, 0, " " * 100)
         self.player.screen.addstr(COMMANDLINE_Y, 0, self.command)
 
     def ls(self, screen):
         entries = []
         structures = []
-        
-        for unit_list in [self.player.soldiers, self.player.villagers, 
-                        self.player.cavalry, self.player.archers]:
+
+        for unit_list in [
+            self.player.soldiers,
+            self.player.villagers,
+            self.player.cavalry,
+            self.player.archers,
+        ]:
             for i, unit in enumerate(unit_list):
-                name = (unit.name+str(i)).ljust(9)
+                name = (unit.name + str(i)).ljust(9)
                 state = str(unit.state_action).ljust(9)
                 loc = "({:02x}, {:02x})".format(*unit.location).ljust(12)
                 entries.append(f"| {name} {state} {loc}|")
         for structure_list in self.player.structures.values():
             for structure in structure_list:
-                name = (structure.name+str(i)).ljust(9)
+                name = (structure.name + str(i)).ljust(9)
                 loc = "({:02x}, {:02x})".format(*structure.location).ljust(12)
                 space = "".ljust(9)
                 structures.append(f"| {name} {space} {loc}|")
@@ -145,14 +150,13 @@ class CommandLine:
         index = i
         screen.addstr(COMMANDLINE_Y + 1, UNIT_INFO_X, border)
         screen.addstr(COMMANDLINE_Y - 1 - index, UNIT_INFO_X, border)
-        screen.addstr(COMMANDLINE_Y - 2 - index, UNIT_INFO_X, " "*len(border))
+        screen.addstr(COMMANDLINE_Y - 2 - index, UNIT_INFO_X, " " * len(border))
         for i, structure in enumerate(reversed(structures)):
             screen.addstr(COMMANDLINE_Y - i - 2 - index, UNIT_INFO_X, structure)
         index = i
         screen.addstr(COMMANDLINE_Y - 3 - index, UNIT_INFO_X, border)
-        screen.addstr(COMMANDLINE_Y - 4 - index, UNIT_INFO_X, " "*len(border))
+        screen.addstr(COMMANDLINE_Y - 4 - index, UNIT_INFO_X, " " * len(border))
 
-        
 
 class RemoteCommander(CommandLine):
     def update(self, k):

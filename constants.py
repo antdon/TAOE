@@ -36,6 +36,7 @@ class Resources(Enum):
     def __str__(self):
         return ["Food", "Wood", "Stone", "Gold"][self.value]
 
+
 # TODO: __str__ is an anti-pattern and could be done better.
 class VillagerStates(Enum):
     IDLE = 0
@@ -43,15 +44,17 @@ class VillagerStates(Enum):
     BUILD = 2
 
     def __str__(self):
-        return ["idling", "gathering","building"][self.value]
-    
+        return ["idling", "gathering", "building"][self.value]
+
+
 class ArmyStates(Enum):
     IDLE = 0
     MOVE = 1
     ATTACK = 2
 
     def __str__(self):
-        return ["idling", "moving","attacking"][self.value]
+        return ["idling", "moving", "attacking"][self.value]
+
 
 class Buildings(Enum):
     TOWNHALL = 0
@@ -62,6 +65,7 @@ class Buildings(Enum):
     QUARRY = 5
     HOUSE = 6
 
+
 class Units(Enum):
     VILLAGER = 0
     SOLDIER = 1
@@ -71,13 +75,15 @@ class Units(Enum):
     def __str__(self):
         return ["villager", "soldier", "archer", "cavalry"][int(self.value)]
 
+
 class Terminal(Enum):
     LOCAL = 0
     CLIENT = 1
     SERVER = 2
 
-#TODO: Refactor the other alert messages to read like this.
-#TODO: Tidy this up so there's just one class param.
+
+# TODO: Refactor the other alert messages to read like this.
+# TODO: Tidy this up so there's just one class param.
 def read_cost(name, cost, verb: str):
     s = f"A {name} costs "
     cost_list = list(cost.items())
@@ -88,15 +94,16 @@ def read_cost(name, cost, verb: str):
     s += f" to {verb}."
     return s
 
+
 VILLAGER_COST = {Resources.FOOD: 40}
-COLLECTOR_COST =  {Resources.WOOD: 60, Resources.STONE: 25}
+COLLECTOR_COST = {Resources.WOOD: 60, Resources.STONE: 25}
 BARRACKS_COST = {Resources.WOOD: 150}
 SOLDIER_COST = {Resources.FOOD: 60, Resources.GOLD: 40}
 ARCHER_COST = {Resources.FOOD: 40, Resources.WOOD: 25}
 CAVALRY_COST = {Resources.FOOD: 100, Resources.GOLD: 60}
 
-#TODO: This is actually just the first map...
-BERRY_LOCATIONS = [(7,4,2,9), (3,54,5,6)]
-TREE_LOCATIONS = [(20,47,9,10)]
-VEIN_LOCATIONS = [(37,20,3,10)]
-ROCK_LOCATIONS = [(30,3,3,12)]
+# TODO: This is actually just the first map...
+BERRY_LOCATIONS = [(7, 4, 2, 9), (3, 54, 5, 6)]
+TREE_LOCATIONS = [(20, 47, 9, 10)]
+VEIN_LOCATIONS = [(37, 20, 3, 10)]
+ROCK_LOCATIONS = [(30, 3, 3, 12)]

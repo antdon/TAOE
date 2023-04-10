@@ -7,7 +7,7 @@ import random
 from terminal import Server, Client
 
 
-class Chieftain():
+class Chieftain:
     def __init__(self) -> None:
         self.structures: Dict[str, List[Structure]] = {}
         self.villagers: List[Villager] = []
@@ -32,7 +32,7 @@ class Chieftain():
         else:
             raise InvalidUnitTypeException
 
-    def can_afford(self, cost:int):
+    def can_afford(self, cost: int):
         for resource, amount in cost.items():
             if self.get_resources()[resource] < amount:
                 return False
@@ -42,11 +42,12 @@ class Chieftain():
     def loses_resources(self, cost):
         for resource, amount in cost.items():
             self.get_resources()[resource] -= amount
-        
+
 
 class Player(Chieftain):
-    def __init__(self, stdscr, game, color, seed, number=0, 
-                 terminal = Terminal.LOCAL) -> None:
+    def __init__(
+        self, stdscr, game, color, seed, number=0, terminal=Terminal.LOCAL
+    ) -> None:
         super().__init__()
         self.debug = ""
         self.game = game
@@ -76,26 +77,27 @@ class Player(Chieftain):
         retval = random.randrange(10000)
         self.random_state = random.getstate()
         return retval
-        
+
     def get_updates(self, time):
         # TODO: Sus
         k = self.screen.getch()
         if k != -1:
             self.commander.update(k)
 
-        #TODO: Extra sus
+        # TODO: Extra sus
         status_string = ""
         for resource in Resources:
             count = str(self.get_resources()[resource])
             status_string += f"{str(resource)}: {count.ljust(10)}"
         status_string += f"Time: {time // 1000}".ljust(10)
-        self.screen.addstr(0,0, status_string)
-        self.screen.addstr(COMMANDLINE_Y - 1,0, f" " * 100)
-        self.screen.addstr(COMMANDLINE_Y - 1,0, f"{self.debug} ")
+        self.screen.addstr(0, 0, status_string)
+        self.screen.addstr(COMMANDLINE_Y - 1, 0, f" " * 100)
+        self.screen.addstr(COMMANDLINE_Y - 1, 0, f"{self.debug} ")
         self.commander.ls(self.screen)
 
+
 class NPC(Chieftain):
-    def __init__(self, number =1) -> None:
+    def __init__(self, number=1) -> None:
         super().__init__()
         self.color = curses.color_pair(ENEMY_COLOR)
         self.number = number
@@ -107,21 +109,23 @@ class NPC(Chieftain):
     def next_random(self):
         return random.randrange(10000)
 
-    def get_updates(self, * args):
+    def get_updates(self, *args):
         pass
 
     def spawn(self, target):
         for _ in range(len(target.units) - len(target.villagers) + 2):
-            y,x = (random.randrange(MAPHEIGHT), random.randrange(0x4a,MAPWIDTH))
-            self.units.append(random.choice([Cavalry, Archer, Soldier])((y,x), self))
+            y, x = (random.randrange(MAPHEIGHT), random.randrange(0x4A, MAPWIDTH))
+            self.units.append(random.choice([Cavalry, Archer, Soldier])((y, x), self))
             for unit in self.units:
                 unit.move_speed *= 2
 
     def set_attacks(self):
-        
         for unit in self.units:
             if unit.state_action == ArmyStates.IDLE:
                 if filter(lambda u: u not in self.enemy.villagers, self.enemy.units):
-                    unit.set_state(ArmyStates.ATTACK, random.choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]))
+                    unit.set_state(
+                        ArmyStates.ATTACK,
+                        random.choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]),
+                    )
                 else:
                     unit.set_state(ArmyStates.ATTACK, Units.VILLAGER)

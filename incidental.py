@@ -1,6 +1,7 @@
 from constants import *
 from random import choice
 
+
 class Incidental:
     name = "Incidental"
 
@@ -14,19 +15,21 @@ class Incidental:
 
     @classmethod
     def draw(cls, screen, location):
-        screen.addstr(location[0] + 4, location[1] + 2, 
-                    cls.get_rep(location), cls.color)
+        screen.addstr(
+            location[0] + 4, location[1] + 2, cls.get_rep(location), cls.color
+        )
 
     def draw_info(self):
         return (type(self), self.location)
         b = bytearray(b"I")
         b.append(int(self.resource.value) + 1)
-        b.append(self.location[0]+1)
-        b.append(self.location[1]+1)
+        b.append(self.location[0] + 1)
+        b.append(self.location[1] + 1)
         b += b"...."
         return b
-        # return {"type": self.name, "location": self.location, 
+        # return {"type": self.name, "location": self.location,
         #         "color": self.color}
+
 
 class Tree(Incidental):
     color = curses.color_pair(TREE_COLOR)
@@ -36,6 +39,7 @@ class Tree(Incidental):
     def get_rep(cls, location):
         return " "
 
+
 class Vein(Incidental):
     color = curses.color_pair(VEIN_COLOR)
     resource = Resources.GOLD
@@ -44,13 +48,15 @@ class Vein(Incidental):
     def get_rep(cls, location):
         return "|"
 
+
 class Rocks(Incidental):
     color = curses.color_pair(ROCK_COLOR)
     resource = Resources.STONE
-    
+
     @classmethod
     def get_rep(cls, location):
         return "-"
+
 
 class Berry(Incidental):
     color = curses.color_pair(BERRY_COLOR)
@@ -58,4 +64,4 @@ class Berry(Incidental):
 
     @classmethod
     def get_rep(cls, location):
-        return "⋮⁖∴:"[(location[0]+location[1]) % 4]
+        return "⋮⁖∴:"[(location[0] + location[1]) % 4]

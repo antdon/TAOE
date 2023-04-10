@@ -3,6 +3,7 @@ from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
 from utils import *
 
+
 class Structure:
     buildable_units = []
 
@@ -26,18 +27,19 @@ class Structure:
                     self.player.units.append(new_unit)
                     self.send_rally_command(new_unit)
                 else:
-                    raise InsufficientFundsException(read_cost(unit.name, 
-                                                     unit.cost, "create"))
+                    raise InsufficientFundsException(
+                        read_cost(unit.name, unit.cost, "create")
+                    )
                 break
         else:
             if arg in Units:
-                # TODO: Instead of passing this as a parameter, just look 
+                # TODO: Instead of passing this as a parameter, just look
                 # at the unit to see where it can be built.
                 raise WrongBuildingException(alt_building)
 
     def set_rallypoint(self, *args):
         pass
-    
+
     def execute_command(self, command, *args):
         if command == "create":
             if len(args) == 0:
@@ -52,18 +54,18 @@ class Structure:
         raise InvalidCommandException
 
     def get_neighbours(self):
-        """ 
+        """
         Returns a list of squares that can deliver to this structure.
         """
         squares = []
-        for y in range(self.location[0]-1,self.location[0] + self.size[0]+2):
-            squares.append((y, self.location[1]-1))
-            squares.append((y, self.location[1]+self.size[1]))
+        for y in range(self.location[0] - 1, self.location[0] + self.size[0] + 2):
+            squares.append((y, self.location[1] - 1))
+            squares.append((y, self.location[1] + self.size[1]))
         for x in range(self.location[1], self.location[1] + self.size[1]):
-            squares.append((self.location[0]-1, x))
-            squares.append((self.location[0]+self.size[0], x))
+            squares.append((self.location[0] - 1, x))
+            squares.append((self.location[0] + self.size[0], x))
         return [self.grid.grid.get(s, None) for s in squares if s]
-        
+
     @staticmethod
     def get_next_state():
         return VillagerStates.IDLE, None
@@ -73,19 +75,21 @@ class Structure:
 
     @staticmethod
     def draw(screen, location, color):
-        screen.addstr(location[0]+4, location[1] + 2, "Buil", color)
-        screen.addstr(location[0]+5, location[1] + 2, "ding", color)
+        screen.addstr(location[0] + 4, location[1] + 2, "Buil", color)
+        screen.addstr(location[0] + 5, location[1] + 2, "ding", color)
 
     def draw_info(self):
         return (type(self), self.location, self.player.color)
 
+
 class TownHall(Structure):
     """
-    A Town Hall is where a player should store their resources. 
-    Other structures have only a singular resource they can store and only 
-    a limited capacity of that resource. The Town Hall can store a bunch of 
+    A Town Hall is where a player should store their resources.
+    Other structures have only a singular resource they can store and only
+    a limited capacity of that resource. The Town Hall can store a bunch of
     resources and can store infinite of all of them
     """
+
     enum_value = Buildings.TOWNHALL
     buildable_units = [Villager]
 
@@ -94,7 +98,7 @@ class TownHall(Structure):
         self.size = (3, 6)
         self.name = "townhall"
         # [food, wood, stone, gold]
-        self.resources = dict(zip(Resources,[200, 300, 100, 100]))
+        self.resources = dict(zip(Resources, [200, 300, 100, 100]))
 
     def send_rally_command(self, unit):
         if self.rallypoint:
@@ -115,15 +119,18 @@ class TownHall(Structure):
 
     @staticmethod
     def draw(screen, location, color) -> None:
-        screen.addstr(location[0]+4, location[1] + 2, "      ", color)
-        screen.addstr(location[0]+5, location[1] + 2, "  TH  ", color)
-        screen.addstr(location[0]+6, location[1] + 2, "      ", color)
+        screen.addstr(location[0] + 4, location[1] + 2, "      ", color)
+        screen.addstr(location[0] + 5, location[1] + 2, "  TH  ", color)
+        screen.addstr(location[0] + 6, location[1] + 2, "      ", color)
+
 
 class House(Structure):
     enum_value = Buildings.HOUSE
+
     def __init__(self, location, player) -> None:
         self.name = "house"
         super().__init__(location, player)
+
 
 class Barracks(Structure):
     enum_value = Buildings.BARRACKS
@@ -139,12 +146,12 @@ class Barracks(Structure):
     def send_rally_command(self, unit):
         if self.rallypoint:
             unit.move(*self.rallypoint)
-    
+
     def set_rallypoint(self, *args):
         if args and len(args) >= 2:
             t = self.grid.validate_coordinate(*args)
             self.rallypoint = t
-            
+
     @staticmethod
     def get_cost():
         return BARRACKS_COST
@@ -152,11 +159,10 @@ class Barracks(Structure):
     def create(self, *args):
         super().create("townhall", *args)
 
-
     @staticmethod
     def draw(screen, location, color):
-        screen.addstr(location[0]+4, location[1] + 2, "Barr", color)
-        screen.addstr(location[0]+5, location[1] + 2, "acks", color)
+        screen.addstr(location[0] + 4, location[1] + 2, "Barr", color)
+        screen.addstr(location[0] + 5, location[1] + 2, "acks", color)
 
 
 class Collector(Structure):
@@ -187,13 +193,14 @@ class Mine(Collector):
 
     @staticmethod
     def draw(screen, location, color):
-        screen.addstr(location[0]+4, location[1] + 2, " MI ", color)
-        screen.addstr(location[0]+5, location[1] + 2, " NE ", color)
+        screen.addstr(location[0] + 4, location[1] + 2, " MI ", color)
+        screen.addstr(location[0] + 5, location[1] + 2, " NE ", color)
 
 
 class Mill(Collector):
     enum_value = Buildings.MILL
     name = "mill"
+
     def __init__(self, location, player) -> None:
         self.name = "mill"
         super().__init__(location, player)
@@ -207,16 +214,18 @@ class Mill(Collector):
 
     @staticmethod
     def draw(screen, location, color):
-        screen.addstr(location[0]+4, location[1] + 2, " MI ", color)
-        screen.addstr(location[0]+5, location[1] + 2, " LL ", color)
+        screen.addstr(location[0] + 4, location[1] + 2, " MI ", color)
+        screen.addstr(location[0] + 5, location[1] + 2, " LL ", color)
+
 
 class LumberCamp(Collector):
     enum_value = Buildings.LUMBERCAMP
     name = "lumbercamp"
+
     def __init__(self, location, player) -> None:
         self.name = "lumbercamp"
         super().__init__(location, player)
-    
+
     @staticmethod
     def get_next_state():
         return VillagerStates.GATHER, Resources.WOOD
@@ -226,22 +235,24 @@ class LumberCamp(Collector):
 
     @staticmethod
     def draw(screen, location, color):
-        screen.addstr(location[0]+4, location[1] + 2, " Lum", color)
-        screen.addstr(location[0]+5, location[1] + 2, "Camp", color)
-        
+        screen.addstr(location[0] + 4, location[1] + 2, " Lum", color)
+        screen.addstr(location[0] + 5, location[1] + 2, "Camp", color)
+
 
 class Build_Site(Structure):
     def __init__(self, location, time_to_complete: int, building: Structure) -> None:
         """
-        make sure the building location is the same as the building site 
+        make sure the building location is the same as the building site
         """
         super().__init__(location)
         self.time_to_complete = time_to_complete
         self.building = building
         self.name = "buildsite"
 
+
 class Quarry(Collector):
     enum_value = Buildings.LUMBERCAMP
+
     def __init__(self, location, player) -> None:
         self.name = "quarry"
         super().__init__(location, player)
@@ -255,12 +266,5 @@ class Quarry(Collector):
 
     @staticmethod
     def draw(screen, location, color):
-        screen.addstr(location[0]+4, location[1] + 2, " Qua", color)
-        screen.addstr(location[0]+5, location[1] + 2, " rry", color)
-
-
-
-
-
-
-
+        screen.addstr(location[0] + 4, location[1] + 2, " Qua", color)
+        screen.addstr(location[0] + 5, location[1] + 2, " rry", color)
