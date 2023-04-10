@@ -105,12 +105,16 @@ class Villager(Unit):
         if command not in ["gather", "build"]:
             raise InvalidCommandException
         if command == "gather":
+            if len(args) == 0:
+                raise InvalidResourceTypeException
             TargetResource = args[0]
             if type(TargetResource) != Resources:
                 raise InvalidResourceTypeException
             self.set_state(VillagerStates.GATHER, TargetResource)
             self.set_path()
         elif command == "build":
+            if len(args) == 0:
+                raise InvalidBuildingTypeException
             TargetBuilding = args[0]
             self.build(TargetBuilding, *args[1:])
 

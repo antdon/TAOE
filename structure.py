@@ -1,7 +1,7 @@
 from typing import List, Tuple
 from unit import Soldier, Villager, Archer, Cavalry
 from constants import *
-from utils import InsufficientFundsException, InvalidCommandException, InvalidCoordinateException, InvalidResourceTypeException, WrongBuildingException
+from utils import *
 
 class Structure:
     buildable_units = []
@@ -40,9 +40,13 @@ class Structure:
     
     def execute_command(self, command, *args):
         if command == "create":
+            if len(args) == 0:
+                raise InvalidUnitTypeException
             self.create(*args)
             return
         elif command == "rallypoint":
+            if len(args) == 0:
+                raise InvalidCoordinateException
             self.set_rallypoint(*args)
             return
         raise InvalidCommandException

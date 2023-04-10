@@ -39,7 +39,21 @@ class CommandLine:
         raise InvalidCommandArgumentException
 
     def parse_selection(self, word: str):
+        def split_index(word: str):
+            """
+            remove numerical characters from the end of a string
+            and return a tuple of the string and the index
+            """
+            index = ""
+            for i in range(len(word) - 1, -1, -1):
+                if word[i].isdigit():
+                    index += word[i]
+                elif index == "":
+                    return (word, 0)
+                else:
+                    return (word[:i+1], int(index))
         # TODO: Does string comparison work slower here?
+        unit_name, index = split_index(word)
         for unit in Units:
             unit = str(unit)
             if unit == word[:len(unit)]:
@@ -53,8 +67,8 @@ class CommandLine:
                         return [unit_container[ind]]
                     except:
                         raise InvalidUnitTypeException(word, unit)
-        if word in ["townhall", "barracks"]:
-            return [self.player.get_structure(word)]
+        if unit_name in ["townhall", "barracks"]:
+            return [self.player.get_structure(unit_name, index)]
         raise InvalidCommandException
 
 

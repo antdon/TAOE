@@ -29,3 +29,8 @@ class InvalidUnitTypeException(InvalidCommandException):
 class InsufficientFundsException(InvalidCommandException):
     def __init__(self, message):
         self.message = message
+
+class DebugError(Exception):
+    def __init__(self, message) -> None:
+        self.message = message
+        
