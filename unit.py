@@ -290,16 +290,9 @@ class Army(Unit):
 
     def nearest_attackable(self, target=None):
         squares = []
-        # TODO: Enum problem.
-        class_dict = {
-            Units.ARCHER: Archer,
-            Units.CAVALRY: Cavalry,
-            Units.SOLDIER: Soldier,
-            Units.VILLAGER: Villager,
-        }
         if target != None:
             for unit in self.player.enemy.units:
-                if type(unit) == class_dict[target]:
+                if type(unit).name == str(target):
                     squares += self.grid[unit.location].get_neighbours()
         else:
             for unit in self.player.enemy.units:
