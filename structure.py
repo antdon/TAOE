@@ -58,9 +58,10 @@ class Structure:
         Returns a list of squares that can deliver to this structure.
         """
         squares = []
+        # Does not include any squares internal to the structure.
         for y in range(self.location[0] - 1, self.location[0] + self.size[0] + 2):
             squares.append((y, self.location[1] - 1))
-            squares.append((y, self.location[1] + self.size[1]))
+            squares.append((y, self.location[1] + self.size[1])) 
         for x in range(self.location[1], self.location[1] + self.size[1]):
             squares.append((self.location[0] - 1, x))
             squares.append((self.location[0] + self.size[0], x))

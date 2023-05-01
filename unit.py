@@ -1,6 +1,6 @@
 import time
 from typing import List, Callable
-from tilegrid import TileGrid
+from tilegrid import Tile, TileGrid
 import random
 from constants import *
 from utils import *
@@ -289,7 +289,6 @@ class Army(Unit):
             self.move(*args)
 
     def nearest_attackable(self, target=None):
-        squares = []
         # TODO: Enum problem.
         class_dict = {
             Units.ARCHER: Archer,
@@ -297,16 +296,66 @@ class Army(Unit):
             Units.SOLDIER: Soldier,
             Units.VILLAGER: Villager,
         }
+        # Get all units matching a type, or if no type specified, all units.
+        attackable_units: List[Unit] = []
         if target != None:
             for unit in self.player.enemy.units:
-                if type(unit) == class_dict[target]:
-                    squares += self.grid[unit.location].get_neighbours()
-        else:
-            for unit in self.player.enemy.units:
-                squares += self.grid[unit.location].get_neighbours()
-        return min(
-            squares, key=lambda square: square.get_dist(self.location)
-        ).coordinate
+                if type(unit) == None or type(unit) == class_dict[target]:
+                    attackable_units.append(unit)
+        
+        # Find all neighbours.
+        target_distance_dict = [
+            {
+                "target": t, 
+                "distance": self.grid[self.location].get_dist(t.location)
+            } for t in attackable_units
+        ]
+        chosen = min(target_distance_dict, key = lambda x: x["distance"])
+        path_table = [{
+            "square": self.grid[self.location],
+            "dist_from_me": 1,
+            "dist_from_target": chosen["distance"],
+            "calculated": False,
+            "parent": None,
+        }]
+        while 1:
+            current = min(filter(lambda p: not p["calculated"], path_table),
+                          key = lambda p: (p["dist_from_me"], p["dist_from_target"]))
+            for neighbour in current["square"].get_neighbours():
+                if neighbour not in [entry["square"] for entry in path_table]:
+                    target_distance_dict = [
+                        {
+                            "target": t, 
+                            "distance": neighbour.get_dist(t.location)
+                        } for t in attackable_units
+                    ]
+                    chosen = min(target_distance_dict, key = lambda x: x["distance"])
+                    path_table.append({
+                        "square": neighbour,
+                        "dist_from_me": current["dist_from_me"] + 1,
+                        "dist_from_target": chosen["distance"],
+                        "targeting": chosen["target"],
+                        "calculated": False,
+                        "parent": current,
+                    })
+                    if chosen["distance"] <= self.attack_range:
+                        self.player.debug = f"{neighbour}"
+                        return neighbour.coordinate
+            current["calculated"] = True
+            if all([square["calculated"] for square in path_table]):
+                raise InvalidCommandException("Couldn't reach any targets of that type.")
+
+
+        # if target != None:
+        #     for unit in self.player.enemy.units:
+        #         if type(unit) == class_dict[target]:
+        #             squares += self.grid[unit.location].get_neighbours()
+        # else:
+        #     for unit in self.player.enemy.units:
+        #         squares += self.grid[unit.location].get_neighbours()
+        # return min(
+        #     squares, key=lambda square: square.get_dist(self.location)
+        # ).coordinate
 
     def is_attackable_unit(self, unit):
         return self.grid[unit.location].get_dist(self.location) <= self.attack_range
