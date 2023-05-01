@@ -10,7 +10,7 @@ from screen import Screen
 
 
 class Game:
-    def __init__(self, screen, seed=None, is_server=True, is_npc_game=False) -> None:
+    def __init__(self, screen, seed=None, is_server=True, is_npc_game=False, script=None) -> None:
         self.screen = Screen(screen, MAPHEIGHT, MAPWIDTH)
         self.grid = TileGrid()
 
@@ -18,6 +18,17 @@ class Game:
         self.all_units = []
         self.time: int = round(time.time() * 1000)
         self.start_time = self.time
+
+        self.script = {}
+        if script:
+            with open(f"scripts/{script}.txt", "r") as script_file:
+                for line in script_file:
+                    line = line.strip()
+                    first_space = line.index(" ")
+                    try:
+                        self.script[int(line[:first_space]) * 1000] = line[first_space + 1:]
+                    except:
+                        raise InvalidScriptException(f"The line {line} is malformed")
 
         # TODO: multiplayer
         if is_npc_game:
@@ -89,7 +100,11 @@ class Game:
         """
         time_now = round(time.time() * 1000) - self.start_time
         delta_time = (time_now - self.time) * 2
+        prev_time = self.time
         self.time = time_now
+        if self.time != prev_time:
+            if self.time in self.script:
+                self.players[0].commander.interpret_command(self.script[self.time])
 
         for player in self.players:
             player.get_updates(self.time)

@@ -38,6 +38,11 @@ class InsufficientFundsException(InvalidCommandException):
     def __init__(self, message):
         self.message = message
 
+class InvalidScriptException(Exception):
+    message = "The provided script is invalid"
+    
+    def __init__(self, message):
+        self.message = message
 
 class DebugError(Exception):
     def __init__(self, message) -> None:
