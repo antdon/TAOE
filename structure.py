@@ -6,6 +6,7 @@ from utils import *
 
 class Structure:
     buildable_units = []
+    name = "structure"
 
     def __init__(self, location, player) -> None:
         self.location = location
@@ -90,8 +91,9 @@ class TownHall(Structure):
     resources and can store infinite of all of them
     """
 
-    enum_value = Buildings.TOWNHALL
+    enum_value = Structures.TOWNHALL
     buildable_units = [Villager]
+    name = "townhall"
 
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
@@ -125,7 +127,7 @@ class TownHall(Structure):
 
 
 class House(Structure):
-    enum_value = Buildings.HOUSE
+    enum_value = Structures.HOUSE
 
     def __init__(self, location, player) -> None:
         self.name = "house"
@@ -133,7 +135,7 @@ class House(Structure):
 
 
 class Barracks(Structure):
-    enum_value = Buildings.BARRACKS
+    enum_value = Structures.BARRACKS
     name = "barracks"
     buildable_units = [Soldier, Archer, Cavalry]
 
@@ -177,7 +179,7 @@ class Collector(Structure):
 
 
 class Mine(Collector):
-    enum_value = Buildings.MINE
+    enum_value = Structures.MINE
     name = "mine"
 
     def __init__(self, location, player) -> None:
@@ -198,7 +200,7 @@ class Mine(Collector):
 
 
 class Mill(Collector):
-    enum_value = Buildings.MILL
+    enum_value = Structures.MILL
     name = "mill"
 
     def __init__(self, location, player) -> None:
@@ -219,7 +221,7 @@ class Mill(Collector):
 
 
 class LumberCamp(Collector):
-    enum_value = Buildings.LUMBERCAMP
+    enum_value = Structures.LUMBERCAMP
     name = "lumbercamp"
 
     def __init__(self, location, player) -> None:
@@ -240,6 +242,8 @@ class LumberCamp(Collector):
 
 
 class Build_Site(Structure):
+    name = "buildsite"
+
     def __init__(self, location, time_to_complete: int, building: Structure) -> None:
         """
         make sure the building location is the same as the building site
@@ -251,7 +255,8 @@ class Build_Site(Structure):
 
 
 class Quarry(Collector):
-    enum_value = Buildings.LUMBERCAMP
+    enum_value = Structures.QUARRY
+    name = "quarry"
 
     def __init__(self, location, player) -> None:
         self.name = "quarry"
