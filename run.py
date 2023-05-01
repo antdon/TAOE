@@ -5,13 +5,18 @@ from game import *
 from sys import argv
 
 
-def main(stdscr):
+def main(stdscr, **cmd_line_args):
     # Clear screen
     stdscr.clear()
-    if len(argv) > 1:
-        game = Game(stdscr, seed=1, is_npc_game=bool(int(argv[1])))
+    if "is_npc_game" in cmd_line_args:
+        is_npc_game = cmd_line_args["is_npc_game"]
     else:
-        game = Game(stdscr, is_npc_game=1)
+        is_npc_game = True
+    if "script" in cmd_line_args:
+        script = cmd_line_args["script"]
+    else:
+        script = None
+    game = Game(stdscr, seed=1, is_npc_game=is_npc_game, script=script)
     curses.init_color(8, 0, 250, 0)
     curses.init_pair(PLAYER_COLOR, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(ENEMY_COLOR, curses.COLOR_BLACK, curses.COLOR_YELLOW)
@@ -29,7 +34,8 @@ def main(stdscr):
 
 if __name__ == "__main__":
     try:
-        wrapper(main)
+        cmd_line_args = dict(arg.split("=") for arg in argv[1:])
+        wrapper(main, **cmd_line_args)
     except curses.error as e:
         print("Had error...", type(e), e)
         print("If this happens on startup, you might need to resize the terminal.")

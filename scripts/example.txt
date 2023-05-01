@@ -1,0 +1,6 @@
+1 townhall/create villager
+2 villager0/build barracks 18 12
+3 villager1/build mill 0b 0a
+4 townhall/create villager
+5 villager0/gather wood
+6 villager2/build lumbercamp 14 28
