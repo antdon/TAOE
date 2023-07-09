@@ -34,10 +34,6 @@ class Unit:
     def die(self):
         self.player.units = [u for u in self.player.units if u != self]
         self.dead = True
-        try:
-            self.container.remove(self)
-        except:
-            pass
 
     def set_desired_square(self, location):
         self.desired_square = location
@@ -96,8 +92,6 @@ class Villager(Unit):
         self.desired_square = None
         self.target_incidental = None
         self.set_state(VillagerStates.IDLE, None)
-        self.container = self.player.villagers
-        self.container.append(self)
 
     def build(self, TargetBuilding, *args):
         y, x = self.grid.validate_coordinate(*args)
@@ -164,16 +158,15 @@ class Villager(Unit):
 
     def drop_if_possible(self):
         # If next to a building that can take the carried resource, drop the resource.
-        for structures in self.player.structures.values():
-            for structure in structures:
-                if self.grid[self.location] in structure.get_neighbours():
-                    for resource in Resources:
-                        if structure.can_receive(resource):
-                            self.player.get_resources()[resource] += self.resources[
-                                resource
-                            ]
-                            self.resources[resource] = 0
-                            self.set_path()
+        for structure in self.player.structures:
+            if self.grid[self.location] in structure.get_neighbours():
+                for resource in Resources:
+                    if structure.can_receive(resource):
+                        self.player.get_resources()[resource] += self.resources[
+                            resource
+                        ]
+                        self.resources[resource] = 0
+                        self.set_path()
 
     def carried_resource(self):
         for resource in Resources:
@@ -200,13 +193,9 @@ class Villager(Unit):
                 Building = self.state_target
                 if self.player.can_afford(Building.get_cost()):
                     building = Building(self.location, self.player)
-                    if building.name in self.player.structures:
-                        self.player.structures[building.name].append(building)
-                    else:
-                        self.player.structures[building.name] = [building]
+                    self.player.structures.append(building)
                     self.set_state(*Building.get_next_state())
-                    for villager in self.player.villagers:
-                        villager.set_path()
+                    self.player.reroute_all_villagers()
                 else:
                     self.player.debug = "Not enough resources to build building."
                     self.set_state(VillagerStates.IDLE, None)
@@ -251,10 +240,9 @@ class Villager(Unit):
     def nearest_deliverable(self, resource: Resources):
         # TODO: A* Algorithm
         squares = []
-        for structures in self.player.structures.values():
-            for structure in structures:
-                if structure.can_receive(resource):
-                    squares += structure.get_neighbours()
+        for structure in self.player.structures:
+            if structure.can_receive(resource):
+                squares += structure.get_neighbours()
         # TODO: Handle errors here.
         return min(
             squares, key=lambda square: square.get_dist(self.desired_square)
@@ -366,8 +354,6 @@ class Soldier(Army):
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
         self.move_speed = SOLDIER_SPEED
-        self.container = self.player.soldiers
-        self.container.append(self)
 
 
 class Archer(Army):
@@ -380,8 +366,6 @@ class Archer(Army):
         super().__init__(location, player)
         self.attack_range = 5
         self.move_speed = ARCHER_SPEED
-        self.container = self.player.archers
-        self.container.append(self)
 
 
 class Cavalry(Army):
@@ -393,5 +377,3 @@ class Cavalry(Army):
     def __init__(self, location, player) -> None:
         super().__init__(location, player)
         self.move_speed = CAVALRY_SPEED
-        self.container = self.player.cavalry
-        self.container.append(self)
