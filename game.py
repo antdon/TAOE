@@ -23,9 +23,7 @@ class Game:
         if is_npc_game:
             self.players = [Player(screen, self, PLAYER_COLOR, seed)]
             self.players[0].units.append(Villager((23, 16), self.players[0]))
-            self.players[0].structures["townhall"] = [
-                TownHall((20, 10), self.players[0])
-            ]
+            self.players[0].structures.append(TownHall((20, 10), self.players[0]))
             self.enemy = NPC()
             self.players.append(self.enemy)
             self.enemy.game = self
@@ -42,15 +40,15 @@ class Game:
             self.enemy.enemy = self.players[0]
         else:
             if is_server:
-                self.players = [Player(screen, self, PLAYER_COLOR, seed, 0)]
+                self.players = [Player(screen, self, PLAYER_COLOR, seed)]
                 self.players.append(
-                    Player(None, self, ENEMY_COLOR, seed, 1, terminal=Terminal.SERVER)
+                    Player(None, self, ENEMY_COLOR, seed, terminal=Terminal.SERVER)
                 )
             else:
                 self.players = [
-                    Player(None, self, PLAYER_COLOR, seed, 0, terminal=Terminal.CLIENT)
+                    Player(None, self, PLAYER_COLOR, seed, terminal=Terminal.CLIENT)
                 ]
-                self.players.append(Player(screen, self, ENEMY_COLOR, seed, 1))
+                self.players.append(Player(screen, self, ENEMY_COLOR, seed))
             for player in self.players:
                 player.commander.set_opponent_boxes(
                     [other.screen for other in self.players if other != player]

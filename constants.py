@@ -56,7 +56,7 @@ class ArmyStates(Enum):
         return ["idling", "moving", "attacking"][self.value]
 
 
-class Buildings(Enum):
+class Structures(Enum):
     TOWNHALL = 0
     MINE = 1
     MILL = 2
@@ -64,6 +64,9 @@ class Buildings(Enum):
     BARRACKS = 4
     QUARRY = 5
     HOUSE = 6
+
+    def __str__(self):
+        return ["townhall", "mine", "mill", "lumbercamp", "barracks", "quarry", "house"][int(self.value)]
 
 
 class Units(Enum):

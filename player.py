@@ -9,18 +9,28 @@ from terminal import Server, Client
 
 class Chieftain:
     def __init__(self) -> None:
-        self.structures: Dict[str, List[Structure]] = {}
-        self.villagers: List[Villager] = []
+        self.structures: List[Structure] = []
         self.units: List[Unit] = []
-        self.soldiers: List[Unit] = []
-        self.archers: List[Unit] = []
-        self.cavalry: List[Unit] = []
 
     def get_structure(self, word, indx=0):
-        if word in self.structures and indx < len(self.structures[word]):
-            return self.structures[word][indx]
+        structures = self.get_all_structures_of_type(word)
+        if indx < len(structures):
+            return structures[indx]
         else:
             raise InvalidBuildingTypeException
+        
+    def get_all_structures_of_type(self, structure_type: str):
+        return [
+            structure for structure in self.structures 
+                if type(structure).name == structure_type
+        ]
+        
+    def get_all_units_of_type(self, unit_type: str):
+        return [u for u in self.units if type(u).name == unit_type]
+        
+    def reroute_all_villagers(self):
+        for villager in self.get_all_units_of_type("villager"):
+            villager.set_path()
 
     def get_resources(self):
         return self.get_structure("townhall").resources
@@ -46,14 +56,11 @@ class Chieftain:
 
 class Player(Chieftain):
     def __init__(
-        self, stdscr, game, color, seed, number=0, terminal=Terminal.LOCAL
+        self, stdscr, game, color, seed, terminal=Terminal.LOCAL
     ) -> None:
         super().__init__()
         self.debug = ""
         self.game = game
-        # TODO: Highly suspect this is redundant, but needs closer inspection.
-        # See removing serialised data.
-        self.number = number
 
         if terminal == Terminal.CLIENT:
             self.commander = RemoteCommander(stdscr, self)
@@ -97,10 +104,9 @@ class Player(Chieftain):
 
 
 class NPC(Chieftain):
-    def __init__(self, number=1) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.color = curses.color_pair(ENEMY_COLOR)
-        self.number = number
         self.seed = 2
 
     def init_random(self):
@@ -113,7 +119,7 @@ class NPC(Chieftain):
         pass
 
     def spawn(self, target):
-        for _ in range(len(target.units) - len(target.villagers) + 2):
+        for _ in range(len(target.units) - len(target.get_all_units_of_type("villager")) + 2):
             y, x = (random.randrange(MAPHEIGHT), random.randrange(0x4A, MAPWIDTH))
             self.units.append(random.choice([Cavalry, Archer, Soldier])((y, x), self))
             for unit in self.units:
@@ -122,7 +128,7 @@ class NPC(Chieftain):
     def set_attacks(self):
         for unit in self.units:
             if unit.state_action == ArmyStates.IDLE:
-                if filter(lambda u: u not in self.enemy.villagers, self.enemy.units):
+                if filter(lambda u: u not in self.enemy.get_all_units_of_type("villager"), self.enemy.units):
                     unit.set_state(
                         ArmyStates.ATTACK,
                         random.choice([Units.SOLDIER, Units.ARCHER, Units.CAVALRY]),
