@@ -56,14 +56,11 @@ class Chieftain:
 
 class Player(Chieftain):
     def __init__(
-        self, stdscr, game, color, seed, number=0, terminal=Terminal.LOCAL
+        self, stdscr, game, color, seed, terminal=Terminal.LOCAL
     ) -> None:
         super().__init__()
         self.debug = ""
         self.game = game
-        # TODO: Highly suspect this is redundant, but needs closer inspection.
-        # See removing serialised data.
-        self.number = number
 
         if terminal == Terminal.CLIENT:
             self.commander = RemoteCommander(stdscr, self)
@@ -107,10 +104,9 @@ class Player(Chieftain):
 
 
 class NPC(Chieftain):
-    def __init__(self, number=1) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self.color = curses.color_pair(ENEMY_COLOR)
-        self.number = number
         self.seed = 2
 
     def init_random(self):
