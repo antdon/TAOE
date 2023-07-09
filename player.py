@@ -20,8 +20,10 @@ class Chieftain:
             raise InvalidBuildingTypeException
         
     def get_all_structures_of_type(self, structure_type: str):
-        retvla = [structure for structure in self.structures if type(structure).name == structure_type]
-        return retvla
+        return [
+            structure for structure in self.structures 
+                if type(structure).name == structure_type
+        ]
         
     def get_all_units_of_type(self, unit_type: str):
         return [u for u in self.units if type(u).name == unit_type]
