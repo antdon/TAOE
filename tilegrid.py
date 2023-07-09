@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Tuple
 import itertools
 from constants import *
 from incidental import Berry, Rocks, Tree, Vein

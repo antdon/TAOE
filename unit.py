@@ -1,5 +1,5 @@
 import time
-from typing import List, Callable
+from typing import List, Callable, Tuple
 from tilegrid import Tile, TileGrid
 import random
 from constants import *
@@ -73,6 +73,9 @@ class Unit:
             if until_state():
                 self.time_on_task += (num_steps - s - 1) * rate
                 break
+
+    def get_neighbouring_squares(self):
+        return self.grid[self.location].get_neighbours()
 
 
 class Villager(Unit):
@@ -258,23 +261,68 @@ class Army(Unit):
         self.desired_square = None
         random.seed(self.player.next_random())
         self.random_state = random.getstate()
+        self.path = []
+        self.attack_target = None
 
-    def move(self, *args):
-        # TODO: Make this set the desired square to a square rather than a coord
-        y, x = self.grid.validate_coordinate(*args)
-        self.set_state(ArmyStates.MOVE, None)
-        self.set_desired_square((y, x))
+    def set_army_path(self, target: Tuple[int, int], stopping_dist: int):
+        def manhattan_dist(square):
+            return (
+                abs(square.coordinate[0] - target[0]) 
+              + abs(square.coordinate[1] - target[1])
+            )
+        tracker = {self.grid[self.location]: {
+            "distance": manhattan_dist(self.grid[self.location]),
+            "path": [],
+            "visited": False,
+        }}
+        # Get the minimum (distance travelled, distance to go)
+        while 1:
+            candidates = {
+                k: v for k,v in tracker.items() if v["visited"] == False
+            }
+            current = min(
+                candidates.items(), 
+                key= lambda candidate: (
+                    len(candidate[1]["path"]), 
+                    candidate[1]["distance"]
+                )
+            )
+            tracker[current[0]]["visited"] = True
+            # Get all of its neighbours
+            for n in current[0].get_neighbours():
+                # In an actual A*, we would need to compare distances
+                # at this point, but we can be pretty sure if it's been seen
+                # already then it had a shorter distance from the start.
+                if n not in tracker.keys() and n.content == None:
+                    dist = n.get_dist(target)
+                    path = current[1]["path"] + [current[0]]
+                    if dist <= stopping_dist:
+                        self.path = path + [n]
+                        return
+                    tracker[n] = {
+                        "distance": manhattan_dist(n),
+                        "path": path,
+                        "visited": False,
+                    }
 
     def execute_command(self, command, *args):
+        #TODO: Parts of this should move to commander
         if command not in ["attack", "move"]:
             raise InvalidCommandException
         if command == "attack":
             try:
                 self.set_state(ArmyStates.ATTACK, args[0])
+                self.attack_target = min(
+                    self.player.enemy.get_all_units_of_type(str(self.state_target)),
+                    key=lambda unit: self.grid[self.location].get_dist(unit.location)
+                )
+                self.set_army_path(self.attack_target.location, self.attack_range)
             except IndexError:
                 raise InvalidCommandArgumentException
         if command == "move":
-            self.move(*args)
+            y, x = self.grid.validate_coordinate(*args)
+            self.set_state(ArmyStates.MOVE, None)
+            self.set_army_path((y, x), 0)
 
     def nearest_attackable(self, target=None):
         squares = []
@@ -304,7 +352,11 @@ class Army(Unit):
             target.die()
 
     def attack_if_possible(self):
-        attackables = list(filter(self.is_attackable_unit, self.player.enemy.units))
+        if self.state_action == ArmyStates.ATTACK and self.attack_target != None:
+            targets = [self.attack_target]
+        else:
+            targets = self.player.enemy.units
+        attackables = list(filter(self.is_attackable_unit, targets))
         if attackables:
             actual_target = attackables[0]
             attack_steps = self.accrue_time(0, self.attack_speed)
@@ -314,6 +366,9 @@ class Army(Unit):
                 lambda: actual_target.dead,
                 self.attack_speed,
             )
+
+    def advance_on_path(self):
+        self.location = self.path.pop(0).coordinate
 
     # TODO: Needs refactoring, unclear what behaviour is happening here.
     def update_move(self, delta_time):
@@ -328,18 +383,17 @@ class Army(Unit):
         # Attack if possible.
         self.time_on_task += delta_time
         self.attack_if_possible()
-        if self.desired_square != None and self.location != self.desired_square:
+        if self.path:
             # Time not accrued here, because time accrued before attack
             move_steps = self.accrue_time(0, self.move_speed)
-            target_location = self.desired_square
             self.spend_time_until(
                 move_steps,
-                lambda: self.step(target_location),
-                lambda: self.location == target_location,
+                self.advance_on_path,
+                lambda: len(self.path) == 0,
                 self.move_speed,
             )
         if (
-            self.location == self.desired_square
+            len(self.path) == 0
             and self.state_action == ArmyStates.MOVE
         ):
             self.set_state(ArmyStates.IDLE, None)
